@@ -28,6 +28,10 @@ import flixel.util.FlxVector;
  
 class Magnet extends FlxSprite
 {
+	
+	public static var w:Int = 32;
+	public static var h:Int = 32;
+	
 	private var speed:Float = 300;
 	private var gamepad:FlxGamepad;
 	
@@ -40,18 +44,22 @@ class Magnet extends FlxSprite
 	private var lastMg:MagnetMode;
 	private var mgMode:MagnetMode;
 	
-	private var forceMagnitude: Float = 1000000;
+	private var forceMagnitude: Float = 10000;
 	public var currentForce: Float = 0;
+	public var minThreshold:Float = 48;
+	public var maxThreshold:Float = 240;
+	
+	public var radius:Float = 48;
 	
 	public function new(X:Float=0, Y:Float=0, ?SimpleGraphic:Dynamic) 
 	{
 		super(X, Y, SimpleGraphic);	
-		makeGraphic(32, 32);
+		makeGraphic(w, h);
 		
 		velocity.set(0, 0);		
 		gamepad = null;
 		
-		lastMv = MovementMode.Left;
+		lastMv = MovementMode.Right;
 		changeMovement(MovementMode.Off);		
 		
 		lastMg = MagnetMode.Repel;
@@ -63,9 +71,9 @@ class Magnet extends FlxSprite
 		processInput();
 		super.update();
 		
-		if ((x + 32) > FlxG.width)
+		if ((x + h) > FlxG.width)
 		{
-			x = FlxG.width - 32;
+			x = FlxG.width - h;
 			changeMovement(MovementMode.Left);
 			lastMv = MovementMode.Left;
 		}
@@ -89,13 +97,11 @@ class Magnet extends FlxSprite
 		{
 			if (lastMv == MovementMode.Left)
 			{
-				changeMovement(MovementMode.Right);
-				lastMv = MovementMode.Right;
+				changeMovement(lastMv);
 			}
 			else if (lastMv == MovementMode.Right)
 			{
-				changeMovement(MovementMode.Left);
-				lastMv = MovementMode.Left;
+				changeMovement(lastMv);
 			}
 		}
 		else if (FlxG.keys.anyJustReleased(["J"]))
@@ -106,21 +112,11 @@ class Magnet extends FlxSprite
 		var buttonMagnet:Bool = FlxG.keys.anyJustPressed(["K"]);
 		if (buttonMagnet)
 		{
-			if (lastMg == MagnetMode.Repel)
-			{
-				changeMagnet(MagnetMode.Attract);
-				lastMg = MagnetMode.Attract;					
-			}
-			else if (lastMg == MagnetMode.Attract)
-			{
-				changeMagnet(MagnetMode.Repel);
-				lastMg = MagnetMode.Repel;
-			}
+			var newMagnet:Int = mgMode;
+			newMagnet = (newMagnet+ 1) % MAGNETMODE_COUNT;
+			changeMagnet(newMagnet);
 		}
-		else if (FlxG.keys.anyJustReleased(["K"]))
-		{
-			changeMagnet(MagnetMode.Off);
-		}
+		//var buttonReleased:Bool = FlxG.
 	}
 	
 	private function changeMovement(newMvMode:MovementMode ):Void 
@@ -165,6 +161,9 @@ class Magnet extends FlxSprite
 				currentForce = -forceMagnitude;
 			}
 		}
-		
+	}
+	public function getPosition():FlxVector 
+	{
+		return new FlxVector(x + w/2, y + h/2);
 	}
 }

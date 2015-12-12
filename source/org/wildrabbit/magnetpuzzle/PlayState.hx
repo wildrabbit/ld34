@@ -17,6 +17,7 @@ import flixel.util.FlxPoint;
 class PlayState extends FlxState
 {
 	private var items:FlxTypedGroup<Item>;
+	private var goal: Goal;
 	
 	private var player:Magnet;
 	
@@ -27,15 +28,20 @@ class PlayState extends FlxState
 	{
 		super.create();
 		
-		items = new FlxTypedGroup<Item>();
-		add(items);
+		FlxG.debugger.visible = true;
 		
-		var magnetStart:FlxPoint = new FlxPoint(FlxG.width / 2, FlxG.height - 32);
+		var magnetStart:FlxPoint = new FlxPoint((FlxG.width - Magnet.w)/2, FlxG.height - Magnet.h - 4);
 	
+		goal = new Goal((FlxG.width - 200) / 2, 4);
+		add(goal);
+
 		player = new Magnet(magnetStart.x, magnetStart.y);
 		add(player);
 		
-		items.add(new Item(FlxG.width/2, FlxG.height/2));
+		items = new FlxTypedGroup<Item>();
+		add(items);
+		
+		items.add(new Item((FlxG.width - Item.w)/2 - Item.w, (FlxG.height  - Item.h)/2));
 	}
 
 	/**
@@ -58,7 +64,7 @@ class PlayState extends FlxState
 		{
 			for (x in items) 
 			{
-				x.addForce(player.x + 16, player.y + 16, player.currentForce);
+				x.addForce(player);
 			}
 		}
 		else 
