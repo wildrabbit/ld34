@@ -5,8 +5,10 @@ import flixel.FlxSprite;
 import flixel.util.FlxAngle;
 import flixel.util.FlxMath;
 import flixel.util.FlxPoint;
+import flixel.util.FlxRect;
 import flixel.util.FlxVector;
 import flixel.util.FlxVelocity;
+import org.wildrabbit.magnetpuzzle.PlayState.ItemData;
 
 /**
  * ...
@@ -14,8 +16,9 @@ import flixel.util.FlxVelocity;
  */
 class Item extends FlxSprite
 {
-	public static var w:Int = 32;
-	public static var h:Int= 32;
+	public var w:Int;
+	public var h:Int;
+	private var bounds:FlxRect;
 	
 	public var bottom:Float = 40;
 	public var dragMagnitude:Float = 200;
@@ -23,11 +26,16 @@ class Item extends FlxSprite
 	public var maxSpeed:Float = 200;
 	
 	public var oldScale:Float = 0;
-	public function new(X:Float=0, Y:Float=0, ?SimpleGraphic:Dynamic) 
+	public function new(itemData:ItemData, Bounds: FlxRect) 
 	{
-		super(X, Y, SimpleGraphic);
-		loadRotatedGraphic("assets/images/64_pokeball.png", 32);
-		//makeGraphic(16, 16, flixel.util.FlxColor.CHARTREUSE);
+		w = itemData.dims.x;
+		h = itemData.dims.y;
+		
+		bounds = Bounds;
+		
+		super(itemData.pos.x- w/2,itemData.pos.y - h/2);
+		loadRotatedGraphic(itemData.path, 32);
+		charge = itemData.charge;
 		drag.set(dragMagnitude, dragMagnitude);
 		maxVelocity.set(maxSpeed, maxSpeed);
 	}
@@ -72,15 +80,14 @@ class Item extends FlxSprite
 	{
 		super.update();
 		
-		var lowerBound:Float = FlxG.height - bottom;
 		if (y < 0)
 		{
 			y = 0;
 			velocity.y  = 0;
 		}
-		else if (y + h> FlxG.height - h/2)
+		else if (y + h> bounds.height- h/2)
 		{
-			y = FlxG.height - 3*h/2;
+			y = bounds.height - 3*h/2;
 			velocity.y  = 0;
 		}
 		
@@ -89,9 +96,9 @@ class Item extends FlxSprite
 			x = 0;
 			velocity.x = 0;
 		}
-		else if (x + w > FlxG.width)
+		else if (x + w > bounds.width)
 		{
-			x = FlxG.width - w;
+			x = bounds.width - w;
 			velocity.x = 0;
 		}
 	}

@@ -1,15 +1,85 @@
 package org.wildrabbit.magnetpuzzle;
 
 import flixel.FlxG;
+import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.FlxState;
 import flixel.group.FlxGroup;
+import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxTypedGroup;
 import flixel.text.FlxText;
 import flixel.ui.FlxButton;
+import flixel.util.FlxColor;
 import flixel.util.FlxMath;
+import flixel.util.FlxRect;
 import flixel.util.FlxVector;
 import flixel.util.FlxPoint;
+import haxe.Json;
+import haxe.remoting.FlashJsConnection;
+import openfl.utils.Dictionary;
+import org.wildrabbit.magnetpuzzle.Magnet.MagnetMode;
+import org.wildrabbit.magnetpuzzle.PlayState.Vec2;
+
+typedef LevelRect =
+{
+	var x:Float;
+	var y:Float;
+	var w:Float;
+	var h:Float;
+}
+typedef IntVec2 =
+{
+	var x:Int;
+	var y:Int;
+}
+typedef Vec2 =
+{
+	var x:Float;
+	var y:Float;
+}
+
+typedef PlayerData =  
+{
+	var pos:Vec2;
+	var dims:IntVec2;
+	var force:Float;
+	var initialState:MagnetMode;
+}
+
+typedef ItemData =
+{
+	var path:String;
+	var pos:Vec2;
+	var dims:IntVec2;
+	var charge:Float;
+}
+
+typedef Level =
+{
+	var name:String;
+	var area:LevelRect;
+	var player:PlayerData;
+	var items:Array<ItemData>;
+	var goal:ObstacleData;
+	var obstacles:Array<ObstacleData>;
+	var wheels:Array<WheelData>;
+}
+
+typedef ObstacleData =
+{
+	var color:Int;
+	var pos:Vec2;
+	var dims:IntVec2;
+}
+
+typedef WheelData =
+{
+	var color:Int;
+	var pos:Vec2;
+	var dims:IntVec2;
+	var rotationSpeed:Float;
+}
+
 
 /**
  * A FlxState which can be used for the actual gameplay.
@@ -17,9 +87,23 @@ import flixel.util.FlxPoint;
 class PlayState extends FlxState
 {
 	private var items:FlxTypedGroup<Item>;
+	private var obstacles:FlxTypedGroup<FlxSprite>; //Normal, collidable
+	private var deadlyStuff:FlxTypedGroup<DeadlyWheel>;
+	
+	private var worldSprites:FlxSpriteGroup;
+	
+	private var itemCollisions:FlxGroup;
+	
+	public var worldArea:FlxRect;
+	private var worldDebug:FlxSprite;
+	
 	private var goal: Goal;
 	
 	private var player:Magnet;
+	
+	private var currentLevel:String;
+	
+	private var levelTable: Map<String,Level>;
 	
 	/**
 	 * Function that is called up when to state is created to set it up.
@@ -28,20 +112,74 @@ class PlayState extends FlxState
 	{
 		super.create();
 		
-		FlxG.debugger.visible = true;
+		worldArea = new FlxRect(0, 0, FlxG.width, FlxG.height);
+		worldDebug = new FlxSprite(worldArea.x, worldArea.y);
+		worldDebug.makeGraphic(cast(worldArea.width,Int),cast(worldArea.height,Int), 0x99FFFFFF);
+		add(worldDebug);
 		
-		var magnetStart:FlxPoint = new FlxPoint((FlxG.width - Magnet.w)/2, FlxG.height - Magnet.h - 4);
-	
-		goal = new Goal((FlxG.width - 200) / 2, 4);
-		add(goal);
-
-		player = new Magnet(magnetStart.x, magnetStart.y);
-		add(player);
+		worldSprites = new FlxSpriteGroup();
+		add(worldSprites);
+		worldSprites.setPosition(worldArea.x, worldArea.y);
+		worldSprites.add(worldDebug);
 		
+		// Groups
+		obstacles = new FlxTypedGroup<FlxSprite>();
+		add(obstacles);
+		deadlyStuff = new FlxTypedGroup<DeadlyWheel>();
+		add(deadlyStuff);
 		items = new FlxTypedGroup<Item>();
 		add(items);
+		itemCollisions = new FlxGroup();
+		itemCollisions.add(items);
+		itemCollisions.add(obstacles);
 		
-		items.add(new Item((FlxG.width - Item.w)/2 - Item.w, (FlxG.height  - Item.h)/2));
+		levelTable = new Map<String,Level>();
+		
+		levelTable.set("Level0",{
+			name:"Level0",
+			area: { x:100, y:0, w:600, h:600 },
+			player: {
+				pos: { x: 300, y: 584 },
+				dims: { x: 32, y:32 },
+				force: 10000,
+				initialState: MagnetMode.Off
+			},
+			items: [
+				{path: "assets/images/64_pokeball.png", pos: {x: 300, y: 300}, dims: {x:32,y:32}, charge:120},
+				{path: "assets/images/64_pokeball.png", pos: {x: 200, y: 300}, dims: {x:32,y:32}, charge:120},
+				{path: "assets/images/64_pokeball.png", pos: {x: 400, y: 300}, dims: {x:32,y:32}, charge:120},
+			],
+			goal: {color:FlxColor.SALMON, pos: {x: 300,y:4}, dims: {x:200,y:60}},
+			obstacles: [],
+			wheels: []
+		});
+		levelTable.set("Level1",{
+			name:"Level1",
+			area: { x:100, y:0, w:600, h:600 },
+			player: {
+				pos: { x: 300, y: 584},
+				dims: { x: 32, y:32 },
+				force: 10000,
+				initialState: MagnetMode.Off
+			},
+			items: [
+				{path: "assets/images/64_pokeball.png", pos: {x: 300, y: 300}, dims: {x:32,y:32}, charge:120},
+				{path: "assets/images/64_pokeball.png", pos: {x: 200, y: 300}, dims: {x:32,y:32}, charge:120},
+				{path: "assets/images/64_pokeball.png", pos: {x: 400, y: 300}, dims: {x:32,y:32}, charge:120},
+			],
+			goal: {color:FlxColor.PURPLE, pos: {x:300,y:4}, dims: {x:200,y:60}},
+			obstacles: [{color:FlxColor.GOLDENROD, pos: {x:100,y:300}, dims: {x:80,y:60}}],
+			wheels: [{color:FlxColor.GRAY, pos: {x:480,y:200}, dims: {x:72,y:72}, rotationSpeed: 360}]
+		});
+		
+
+		
+		FlxG.debugger.visible = true;
+		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
+		
+		currentLevel = "Level0";
+		loadLevel(levelTable.get(currentLevel));
+		
 	}
 
 	/**
@@ -51,15 +189,92 @@ class PlayState extends FlxState
 	override public function destroy():Void
 	{
 		super.destroy();
+		
+		worldArea = null;
+		player = null;
+		goal = null;
+		
+		items.clear();
+		items = null;
+		
+		deadlyStuff.clear();
+		deadlyStuff = null;
+		obstacles.clear();
+		obstacles = null;
+		
+		itemCollisions.clear();
+		itemCollisions = null;
+		
+		worldSprites.clear();
+		worldSprites = null;
 	}
+	
+	public function loadLevel(lv:Level):Void
+	{
+		worldSprites.clear();
+		
+		worldArea.set(lv.area.x, lv.area.y, lv.area.w, lv.area.h);	
+		worldDebug.makeGraphic(cast(worldArea.width,Int),cast(worldArea.height,Int), 0x99FFFFFF);
+		worldDebug.setPosition(0, 0);
+		worldSprites.add(worldDebug);
+		
+		if (player != null)
+		{
+			remove(player);
+			player = null;
+		}		
+		player = new Magnet(lv.player, worldArea);
+		add(player);
+		worldSprites.add(player);
 
+		if (goal != null)
+		{
+			remove(goal);
+			goal = null;
+		}
+		goal = new Goal(lv.goal,worldArea);		
+		add(goal);
+		worldSprites.add(goal);
+		
+		obstacles.clear();
+		for (obstacleData in lv.obstacles)
+		{
+			var obs:FlxSprite = new FlxSprite(obstacleData.pos.x + worldArea.x, obstacleData.pos.y + worldArea.y);
+			obs.moves = false;
+			obs.immovable = true;
+			obs.makeGraphic(obstacleData.dims.x, obstacleData.dims.y, obstacleData.color);
+			obstacles.add(obs);
+			worldSprites.add(obs);
+		}
+		
+		deadlyStuff.clear();
+		for (wheelData in lv.wheels)
+		{
+			var wheel:DeadlyWheel = new DeadlyWheel(wheelData, worldArea);
+			deadlyStuff.add(wheel);			
+			worldSprites.add(wheel);
+		}
+		
+		items.clear();
+		for (item in lv.items)
+		{
+			var item:Item = new Item(item, worldArea); 
+			items.add(item);
+			worldSprites.add(item);
+		}
+		
+		worldSprites.setPosition(lv.area.x, lv.area.y);
+	}
+	
+	
 	/**
 	 * Function that is called once every frame.
 	 */
 	override public function update():Void
 	{
-		super.update();
 		
+		FlxG.overlap(items, goal, onGoalOverlap);
+		FlxG.overlap(items, deadlyStuff, onWheelsOverlap);
 		if (Math.abs(player.currentForce) > 0.001)
 		{
 			for (x in items) 
@@ -74,5 +289,45 @@ class PlayState extends FlxState
 				x.removeForce();
 			}
 		}
+		
+		
+		FlxG.collide(items, itemCollisions);
+		
+		
+		super.update();
+		
+		
+	}
+	
+	private function onCollideFinished(x:Item, y:Item):Void
+	{
+		FlxObject.separate(x, y);	
+	}
+	
+	private function onGoalOverlap(x:Item, y:Goal):Void 
+	{
+		x.kill();
+		worldSprites.remove(x);
+		trace("Yay! killed one item!");
+		
+		if (items.countLiving() == 0)
+		{
+			if (currentLevel == "Level0")
+			{
+				currentLevel = "Level1";				
+			}
+			else 
+			{
+				currentLevel = "Level0";
+			}
+			loadLevel(levelTable.get(currentLevel));
+		}
+	}
+	
+	private function onWheelsOverlap(x:Item, y:DeadlyWheel):Void
+	{
+		x.kill();
+		worldSprites.remove(x);
+		trace("D'oh!");
 	}
 }

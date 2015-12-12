@@ -5,7 +5,9 @@ import flixel.FlxSprite;
 import flixel.input.gamepad.FlxGamepad;
 import flixel.util.FlxColor;
 import flixel.util.FlxColorUtil;
+import flixel.util.FlxRect;
 import flixel.util.FlxVector;
+import org.wildrabbit.magnetpuzzle.PlayState.PlayerData;
 
 /**
  * ...
@@ -29,8 +31,8 @@ import flixel.util.FlxVector;
 class Magnet extends FlxSprite
 {
 	
-	public static var w:Int = 32;
-	public static var h:Int = 32;
+	public var w:Int = 32;
+	public var h:Int = 32;
 	
 	private var speed:Float = 300;
 	private var gamepad:FlxGamepad;
@@ -50,11 +52,24 @@ class Magnet extends FlxSprite
 	public var maxThreshold:Float = 240;
 	
 	public var radius:Float = 48;
+	private var bounds:FlxRect;
 	
-	public function new(X:Float=0, Y:Float=0, ?SimpleGraphic:Dynamic) 
+	public function new(data:PlayerData,Bounds:FlxRect) 
 	{
-		super(X, Y, SimpleGraphic);	
+		bounds = Bounds;
+		
+		w = data.dims.x;
+		h = data.dims.y;
+
+		super(data.pos.x - w/2, data.pos.y - h/2, null);	
+		
 		makeGraphic(w, h);
+		
+		changeMovement(MovementMode.Off);
+		lastMg = MagnetMode.Repel;
+		changeMagnet(data.initialState);
+		
+		forceMagnitude = data.force;
 		
 		velocity.set(0, 0);		
 		gamepad = null;
@@ -71,15 +86,15 @@ class Magnet extends FlxSprite
 		processInput();
 		super.update();
 		
-		if ((x + h) > FlxG.width)
+		if ((x + w) > bounds.x + bounds.width)
 		{
-			x = FlxG.width - h;
+			x = bounds.x + bounds.width - w;
 			changeMovement(MovementMode.Left);
 			lastMv = MovementMode.Left;
 		}
-		else if (x < 0)
+		else if (x < bounds.x)
 		{
-			x = 0;
+			x = bounds.x;
 			changeMovement(MovementMode.Right);
 			lastMv = MovementMode.Right;
 		}

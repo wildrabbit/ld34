@@ -1,6 +1,10 @@
 package org.wildrabbit.magnetpuzzle;
 
 import flixel.FlxSprite;
+import flixel.util.FlxColor;
+import flixel.util.FlxRect;
+import org.wildrabbit.magnetpuzzle.PlayState.LevelRect;
+import org.wildrabbit.magnetpuzzle.PlayState.ObstacleData;
 
 /**
  * ...
@@ -9,11 +13,24 @@ import flixel.FlxSprite;
 class Goal extends FlxSprite
 {
 
-	public function new(X:Float=0, Y:Float=0, ?SimpleGraphic:Dynamic) 
-	{
-		super(X, Y, SimpleGraphic);
-		
-		makeGraphic(200, 60, 0xF0FF00FF);
-	}
+	public var w:Int;
+	public var h:Int;
+	private var bounds:FlxRect;
 	
+	public function new(goalData:ObstacleData, Bounds:FlxRect) 
+	{
+		w = goalData.dims.x;
+		h = goalData.dims.y;
+		
+		bounds = Bounds;
+		
+		super(goalData.pos.x - w/2, goalData.pos.y);
+		
+		makeGraphic(w, h, goalData.color);
+	}
+	public function setPos(x:Float, y:Float):Void
+	{
+		this.x = x - w / 2;
+		this.y = y;
+	}
 }
