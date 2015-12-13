@@ -410,6 +410,12 @@ class PlayState extends FlxState
 	
 	private function processInput():Void
 	{
+		#if debug
+			if (FlxG.keys.anyJustPressed(["S"]))
+			{
+				nextLevel(true);
+			}
+		#end
 		var keyPressed:Bool = FlxG.keys.anyJustPressed(moveKeys);
 		var mousePressed:Bool = FlxG.mouse.justPressed && movementButton.overlapsPoint(new FlxPoint(FlxG.mouse.x, FlxG.mouse.y));
 		var touchPressed:Bool = false;		
@@ -570,7 +576,7 @@ class PlayState extends FlxState
 		}
 	}
 	
-	private function nextLevel ():Void	
+	private function nextLevel (wrap:Bool = false):Void	
 	{
 		currentLevelIndex++;
 		if (currentLevelIndex < levelSequence.length)
@@ -579,11 +585,19 @@ class PlayState extends FlxState
 		}
 		else 
 		{
-			gameOver = true;
-			gameLost = false;
-			gameWon = true;
+			if (wrap)
+			{
+				currentLevelIndex = 0;
+				loadLevel(levelTable.get(levelSequence[currentLevelIndex]));
+			}
+			else {
+				gameOver = true;
+				gameLost = false;
+				gameWon = true;
+				
+				trace("CONGRATS, YOU'VE REACHED THE END!");	
+			}
 			
-			trace("CONGRATS, YOU'VE REACHED THE END!");
 		}
 	}
 	

@@ -108,12 +108,12 @@ class Item extends FlxSprite
 				angle = 0;
 				setPos(sourcePos.x - unitDirection.x * threshold, sourcePos.y - unitDirection.y * threshold);
 				stuck = true;
-				stuckAngle = direction.radians;
+				stuckAngle = direction.radians; 
 				return;				
 			}
 			else 
 			{
-				if (Math.abs(angle) < 30)
+				if (Math.abs(angle) < 15)
 				{
 					unitDirection.set(0, 1);
 					setPos(sourcePos.x - unitDirection.x * threshold, sourcePos.y - unitDirection.y * threshold);
