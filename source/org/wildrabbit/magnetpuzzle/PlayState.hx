@@ -553,17 +553,20 @@ class PlayState extends FlxState
 	{
 		charge.kill();
 		
-		if (items.countLiving() == 0 && successfulCharges >= necessaryCharges)
+		if (items.countLiving() == 0)
 		{
-			nextLevel();
+			if ( successfulCharges >= necessaryCharges)
+			{
+				nextLevel();				
+			}
+			else 
+			{
+				gameOver = true;
+				gameLost = true;
+				gameWon = false;
+				trace("UH-OH...YOU LOST");
+			}	
 		}
-		else 
-		{
-			gameOver = true;
-			gameLost = true;
-			gameWon = false;
-			trace("UH-OH...YOU LOST");
-		}	
 	}
 	
 	private function nextLevel ():Void	
