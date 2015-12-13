@@ -48,22 +48,39 @@ class Item extends FlxSprite
 		bounds = Bounds;
 		
 		super(bounds.x + itemData.pos.x- w/2, bounds.y + itemData.pos.y - h/2);
-		loadRotatedGraphic(itemData.path, 32);
+		loadGraphic(itemData.path, true, 32, 32);
+		animation.add("positive", [0],1,false);
+		animation.add("negative", [1], 1, false);
+		
 		charge = itemData.charge;
+		if (charge > 0)
+		{
+			animation.play("positive");
+		}
+		else 
+		{
+			animation.play("negative");
+		}
 		drag.set(dragMagnitude, dragMagnitude);
 		maxVelocity.set(maxSpeed, maxSpeed);
 		stuck = false;
 		stuckAngle = 0;
 	}
 	
+	public function willAttract(force:Float):Bool
+	{
+		return !(FlxMath.sameSign(force, charge));
+	}
+	
 	public function addForce(source:Magnet)
 	{
 		var sourcePos:FlxVector = source.getPosition();
+		var attract:Bool = willAttract(source.currentForce);
 		
 		if (stuck)
 		{
 			angle = stuckAngle * FlxAngle.TO_DEG - 90;
-			if (source.currentForce < 0)
+			if (!attract)
 			{
 				stuck = false;
 				stuckAngle = 0;
@@ -84,7 +101,7 @@ class Item extends FlxSprite
 		var distance:Float = direction.length;
 		if (distance <= 48)
 		{
-			if (source.currentForce > 0)
+			if (attract)
 			{
 				velocity.set(0, 0);
 				angle = 0;
@@ -104,7 +121,7 @@ class Item extends FlxSprite
 			}
 		}
 		
-		var force:Float = charge * source.currentForce / direction.lengthSquared;
+		var force:Float = -charge * source.currentForce / direction.lengthSquared;
 		
 		if (oldScale > 0 && force < 0 || oldScale < 0 && force > 0)
 		{

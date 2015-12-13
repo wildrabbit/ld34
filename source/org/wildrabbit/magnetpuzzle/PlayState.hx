@@ -165,9 +165,9 @@ class PlayState extends FlxState
 				initialState: MagnetMode.Off
 			},
 			items: [
-				{path: "assets/images/64_pokeball.png", pos: {x: 300, y: 300}, dims: {x:32,y:32}, charge:120},
-				{path: "assets/images/64_pokeball.png", pos: {x: 200, y: 300}, dims: {x:32,y:32}, charge:120},
-				{path: "assets/images/64_pokeball.png", pos: {x: 400, y: 300}, dims: {x:32,y:32}, charge:120},
+				{path: "assets/images/64_pokeball.png", pos: {x: 300, y: 300}, dims: {x:32,y:32}, charge:250},
+				{path: "assets/images/64_pokeball.png", pos: {x: 200, y: 300}, dims: {x:32,y:32}, charge:-250},
+				{path: "assets/images/64_pokeball.png", pos: {x: 400, y: 300}, dims: {x:32,y:32}, charge:250},
 			],
 			goal: {color:FlxColor.PURPLE, pos: {x:300,y:4}, dims: {x:200,y:60}},
 			obstacles: [{color:FlxColor.GOLDENROD, pos: {x:100,y:300}, dims: {x:80,y:60}}],
