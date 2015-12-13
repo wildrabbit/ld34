@@ -12,12 +12,17 @@ import flixel.util.FlxMath;
  */
 class MenuState extends FlxState
 {
+	var bg:FlxSprite ;
+	
 	/**
 	 * Function that is called up when to state is created to set it up.
 	 */
 	override public function create():Void
 	{
 		super.create();
+		
+		bg = new FlxSprite(0, 0, "assets/images/ld34_main.png");
+		add(bg);
 	}
 
 	/**
@@ -35,5 +40,10 @@ class MenuState extends FlxState
 	override public function update():Void
 	{
 		super.update();
+		
+		if (FlxG.keys.justPressed.ANY || FlxG.mouse.justPressed || FlxG.touches.justStarted(FlxG.touches.list).length > 0)
+		{
+			FlxG.switchState(new PlayState());
+		}
 	}
 }

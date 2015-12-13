@@ -117,7 +117,7 @@ class PlayState extends FlxState
 	private var worldForeground:FlxSprite;
 	private var magnetPaddle:FlxSprite;
 	
-	private var bgColour:Int = 0xffca9b8c;
+	private var bgColour:Int = 0xffecc284;
 	
 	private var txtColour:Int = 0xff7c3e5c;
 	
@@ -376,7 +376,7 @@ class PlayState extends FlxState
 	{
 		if (gameOver)
 		{
-			if (FlxG.keys.justPressed.ANY || FlxG.mouse.justPressed)
+			if (FlxG.keys.justPressed.ANY || FlxG.mouse.justPressed || FlxG.touches.justStarted(FlxG.touches.list).length > 0)
 			{
 				resetGame();
 			}
