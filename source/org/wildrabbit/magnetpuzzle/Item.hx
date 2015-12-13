@@ -3,6 +3,7 @@ package org.wildrabbit.magnetpuzzle;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.util.FlxAngle;
+import flixel.util.FlxColor;
 import flixel.util.FlxMath;
 import flixel.util.FlxPoint;
 import flixel.util.FlxRect;
@@ -20,8 +21,11 @@ class Item extends FlxSprite
 	public var h:Int;
 	private var bounds:FlxRect;
 	
+	public var stuck:Bool = false;
+	public var stuckAngle:Float;
+	
 	public var bottom:Float = 40;
-	public var dragMagnitude:Float = 200;
+	public var dragMagnitude:Float = 300;
 	public var charge:Float = 120;
 	public var maxSpeed:Float = 200;
 	
@@ -31,6 +35,16 @@ class Item extends FlxSprite
 		w = itemData.dims.x;
 		h = itemData.dims.y;
 		
+		var f: Float = Math.random();
+		if (f < 0.33)
+		{
+			color = FlxColor.PLUM;
+		}
+		else if (f < 0.66)
+		{
+			color = FlxColor.TEAL;
+		}
+		
 		bounds = Bounds;
 		
 		super(bounds.x + itemData.pos.x- w/2, bounds.y + itemData.pos.y - h/2);
@@ -38,27 +52,57 @@ class Item extends FlxSprite
 		charge = itemData.charge;
 		drag.set(dragMagnitude, dragMagnitude);
 		maxVelocity.set(maxSpeed, maxSpeed);
+		stuck = false;
+		stuckAngle = 0;
 	}
 	
 	public function addForce(source:Magnet)
 	{
-		
 		var sourcePos:FlxVector = source.getPosition();
+		
+		if (stuck)
+		{
+			angle = stuckAngle * FlxAngle.TO_DEG - 90;
+			if (source.currentForce < 0)
+			{
+				stuck = false;
+				stuckAngle = 0;
+			}
+			else
+			{
+				setPos(sourcePos.x - 48 * Math.cos(stuckAngle), sourcePos.y - 48 * Math.sin(stuckAngle));
+				return;
+			}
+		}
 		var position:FlxVector = getPosition();
 		var direction:FlxVector = sourcePos.subtractNew(position);
 		var unitDirection:FlxVector = new FlxVector(direction.x, direction.y);
 		unitDirection.normalize();
 		
-		var distance:Float = direction.length;
-		if (source.currentForce > 0 && distance < 48)
-		{
-			velocity.set(0, 0);
-			setPos(sourcePos.x, sourcePos.y - source.w/2 - 4);
-			angle = 0;
-			return;
-		}
-		
 		angle = direction.radians * FlxAngle.TO_DEG - 90;
+		
+		var distance:Float = direction.length;
+		if (distance <= 48)
+		{
+			if (source.currentForce > 0)
+			{
+				velocity.set(0, 0);
+				angle = 0;
+				setPos(sourcePos.x - unitDirection.x * 48, sourcePos.y - unitDirection.y * 48);
+				stuck = true;
+				stuckAngle = direction.radians;
+				return;				
+			}
+			else 
+			{
+				if (Math.abs(angle) < 10)
+				{
+					unitDirection.set(0, 1);
+					setPos(sourcePos.x - unitDirection.x * 48, sourcePos.y - unitDirection.y * 48);
+					angle = 0;
+				}
+			}
+		}
 		
 		var force:Float = charge * source.currentForce / direction.lengthSquared;
 		
@@ -69,11 +113,13 @@ class Item extends FlxSprite
 		oldScale = force;
 		
 		velocity.add(unitDirection.x * force, unitDirection.y * force);
-	}	
+	}
 	
 	public function removeForce()
 	{
 		acceleration.set(0, 0);
+		stuck = false;
+		stuckAngle = 0;
 	}
 	
 	override public function update():Void

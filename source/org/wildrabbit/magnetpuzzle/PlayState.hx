@@ -12,6 +12,7 @@ import flixel.ui.FlxButton;
 import flixel.util.FlxColor;
 import flixel.util.FlxMath;
 import flixel.util.FlxRect;
+import flixel.util.FlxSort;
 import flixel.util.FlxVector;
 import flixel.util.FlxPoint;
 import haxe.Json;
@@ -277,14 +278,13 @@ class PlayState extends FlxState
 				x.removeForce();
 			}
 		}
-		
-		
 		FlxG.collide(items, itemCollisions);
 		
-		
 		super.update();
-		
-		
+	}	
+	private function sortByX(order:Int, ob1:Item, ob2:Item):Int 
+	{
+		return FlxSort.byValues(FlxSort.ASCENDING, ob1.x, ob2.x);		
 	}
 	
 	private function onCollideFinished(x:Item, y:Item):Void
