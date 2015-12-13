@@ -85,6 +85,13 @@ typedef WheelData =
 	var rotationSpeed:Float;
 }
 
+ @:enum abstract MoveTarget(Int) from Int to Int
+ {
+	 var None = -1;
+	 var Key = 0;
+	 var Mouse = 1;
+	 var Touch = 2;
+ }
 
 /**
  * A FlxState which can be used for the actual gameplay.
@@ -120,6 +127,10 @@ class PlayState extends FlxState
 	private var magnetPressed:Bool;
 	
 	private var movePressed:Bool;
+	private var movePressTarget:MoveTarget;
+	
+	private static var moveKeys:Array<String> = ["F", "U"];
+	private static var magnetKeys:Array<String> = ["J", "H"];
 	
 	/**
 	 * Function that is called up when to state is created to set it up.
@@ -133,6 +144,7 @@ class PlayState extends FlxState
 		movementButton.animation.add("normal", [0], 1, false);
 		movementButton.animation.add("pressed", [1], 1, false);
 		movePressed = false;
+		movePressTarget = MoveTarget.None;
 		movementButton.animation.play("normal");
 		
 		magnetButton = new FlxSprite(320, 512);
@@ -354,73 +366,75 @@ class PlayState extends FlxState
 	
 	private function processInput():Void
 	{
-		var buttonPressed:Bool = FlxG.keys.anyJustPressed(["J"]);
-		if (!buttonPressed)
+		var keyPressed:Bool = FlxG.keys.anyJustPressed(moveKeys);
+		var mousePressed:Bool = FlxG.mouse.justPressed && movementButton.overlapsPoint(new FlxPoint(FlxG.mouse.x, FlxG.mouse.y));
+		var touchPressed:Bool = false;		
+		for (touch in FlxG.touches.list)
 		{
-			buttonPressed = FlxG.mouse.justPressed && movementButton.overlapsPoint(new FlxPoint(FlxG.mouse.x, FlxG.mouse.y));
+			if (!(touch.overlaps(movementButton)))
+			{
+				continue;
+			}
+			if (touch.justPressed)
+			{
+				touchPressed = true;
+				break;
+			}				
 		}
-		if (!buttonPressed)
+
+		if (!movePressed && (keyPressed || mousePressed || touchPressed))
 		{
+			var mvTarget:MoveTarget = MoveTarget.None;
+			if (keyPressed) 
+			{
+				mvTarget = MoveTarget.Key;
+			}
+			else if (mousePressed)
+			{
+				mvTarget = MoveTarget.Mouse;
+			}
+			else if (touchPressed)
+			{
+				mvTarget = MoveTarget.Touch;
+			}
+			OnMovePressed(mvTarget);
+		}
+		else if (movePressed)
+		{
+			var keyReleased:Bool = FlxG.keys.anyJustReleased(moveKeys);
+			var mouseReleased:Bool = FlxG.mouse.justReleased;
+			var touchReleased:Bool = false;
 			for (touch in FlxG.touches.list)
 			{
-				if (!(touch.overlaps(movementButton)))
+				if (touch.justReleased)
 				{
-					continue;
-				}
-				if (touch.justPressed)
-				{
-					buttonPressed = true;
+					touchReleased = true;
 					break;
-				}				
-			}
-		}
-		if (buttonPressed)
-		{
-			OnMovePressed();
-		}
-		else 
-		{
-			var buttonReleased:Bool = FlxG.keys.anyJustReleased(["J"]);
-			if (!buttonReleased)
-			{
-				buttonReleased = FlxG.mouse.justReleased && movePressed;
-			}
-			if (!buttonReleased)
-			{
-				for (touch in FlxG.touches.list)
-				{
-					if (touch.justReleased && movePressed)
-					{
-						buttonReleased = true;
-						break;
-					}
 				}
 			}
-			if (buttonReleased)
+
+			if ((keyReleased && movePressTarget == MoveTarget.Key ) || (mouseReleased && movePressTarget == MoveTarget.Mouse) || (touchReleased && movePressTarget == MoveTarget.Touch))
 			{
-				OnMoveReleased();	
-			}			
+				OnMoveReleased();
+			}
 		}
 		
 		var ascending:Bool = true;
-		buttonPressed = FlxG.keys.anyJustPressed(["K"]);
-		if (!buttonPressed)
+		keyPressed = FlxG.keys.anyJustPressed(magnetKeys);
+		var swipesDetected:Bool = false;
+		for (swipe in FlxG.swipes)
 		{
-			for (swipe in FlxG.swipes)
+			if (!magnetButton.overlapsPoint(swipe.startPosition)) continue;
+			
+			if (swipe.distance > 24 && (Math.abs(swipe.angle) < 20 || Math.abs(swipe.angle) > 160))
 			{
-				if (!magnetButton.overlapsPoint(swipe.startPosition)) continue;
-				
-				trace("distance: " + Std.string(swipe.distance) + ", angle: " + Std.string(swipe.angle));
-				if (swipe.distance > 24 && (Math.abs(swipe.angle) < 20 || Math.abs(swipe.angle) > 160))
-				{
-					buttonPressed = true;
-					ascending = Math.abs(swipe.angle) > 160;
-					break;
-				}
+				swipesDetected = true;
+				ascending = Math.abs(swipe.angle) > 160;
+				break;
 			}
 		}
 		
-		if (buttonPressed)
+		if (keyPressed || swipesDetected)
 		{
 			OnMagnetCycle(ascending);
 		}
@@ -450,11 +464,12 @@ class PlayState extends FlxState
 		}
 	}
 	
-	private function OnMovePressed():Void
+	private function OnMovePressed(mvTarget:MoveTarget):Void
 	{
 		movementButton.animation.play("pressed");
 		player.OnMoveJustPressed();
 		movePressed = true;
+		movePressTarget = mvTarget;
 	}
 	
 	private function OnMoveReleased ():Void
@@ -462,6 +477,7 @@ class PlayState extends FlxState
 		movementButton.animation.play("normal");
 		player.OnMoveJustReleased();
 		movePressed = false;
+		movePressTarget = MoveTarget.None;
 	}
 	
 	private function sortByX(order:Int, ob1:Item, ob2:Item):Int 

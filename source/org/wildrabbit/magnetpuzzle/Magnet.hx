@@ -80,10 +80,6 @@ class Magnet extends FlxSprite
 			animated = false;
 		}
 		
-		changeMovement(MovementMode.Off);
-		lastMg = MagnetMode.Negative;
-		changeMagnet(data.initialState);
-		
 		forceMagnitude = data.force;
 		
 		velocity.set(0, 0);		

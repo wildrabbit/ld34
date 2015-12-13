@@ -28,7 +28,7 @@ class Goal extends FlxSprite
 		
 		if (goalData.path != null)
 		{
-			loadGraphic(goalData.path);
+			loadGraphic(goalData.path, false, w, h);
 		}
 		else 
 		{
