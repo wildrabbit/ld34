@@ -69,12 +69,14 @@ typedef ObstacleData =
 	var color:Int;
 	var pos:Vec2;
 	var dims:IntVec2;
+	@:optional var path:String;
 }
 
 typedef WheelData =
 {
 	var color:Int;
 	var pos:Vec2;
+	var path:String;
 	var dims:IntVec2;
 	var rotationSpeed:Float;
 }
@@ -92,7 +94,13 @@ class PlayState extends FlxState
 	private var itemCollisions:FlxGroup;
 	
 	public var worldArea:FlxRect;
-	private var worldDebug:FlxSprite;
+	private var worldBackground:FlxSprite;
+	private var worldForeground:FlxSprite;
+	private var magnetPaddle:FlxSprite;
+	
+	private var bgColour:Int = 0xffca9b8c;
+	
+	private var txtColour:Int = 0xff7c3e5c;
 	
 	private var goal: Goal;
 	
@@ -122,7 +130,6 @@ class PlayState extends FlxState
 		movementButton.animation.add("pressed", [1], 1, false);
 		movePressed = false;
 		movementButton.animation.play("normal");
-		add(movementButton);
 		
 		magnetButton = new FlxSprite(320, 512);
 		magnetButton.loadGraphic("assets/images/magnet_mode_button.png", true, 128, 128);
@@ -131,12 +138,11 @@ class PlayState extends FlxState
 		magnetButton.animation.add("off", [2], 1, false);
 		magnetPressed = false;
 		magnetButton.animation.play("off");
-		add(magnetButton);
 		
 		worldArea = new FlxRect(0, 0, FlxG.width, FlxG.height);
-		worldDebug = new FlxSprite(worldArea.x, worldArea.y);
-		worldDebug.makeGraphic(cast(worldArea.width,Int),cast(worldArea.height,Int), 0x99FFFFFF);
-		add(worldDebug);
+		worldBackground = new FlxSprite(worldArea.x, worldArea.y);
+		worldBackground.makeGraphic(cast(worldArea.width,Int),cast(worldArea.height,Int), bgColour);
+		add(worldBackground);
 		
 		effect = new FlxSprite(0, 0);
 		effect.loadGraphic("assets/images/effects.png", true, 32, 32, true);
@@ -162,7 +168,7 @@ class PlayState extends FlxState
 			name:"Level0",
 			area: { x:0, y:0, w:480, h:512 },
 			player: {
-				pos: { x: 240, y: 480 },
+				pos: { x: 240, y: 448 },
 				dims: { x: 32, y:32 },
 				force: 10000,
 				initialState: MagnetMode.Off
@@ -172,7 +178,7 @@ class PlayState extends FlxState
 				//{path: "assets/images/64_pokeball.png", pos: {x: 200, y: 300}, dims: {x:32,y:32}, charge:120},
 				//{path: "assets/images/64_pokeball.png", pos: {x: 400, y: 300}, dims: {x:32,y:32}, charge:120},
 			],
-			goal: {color:FlxColor.SALMON, pos: {x: 240,y:4}, dims: {x:200,y:60}},
+			goal: {color:FlxColor.SALMON, pos: {x: 240,y:4}, dims: {x:200,y:60}, path:"assets/images/goal_200x60.png"},
 			obstacles: [],
 			wheels: []
 		});
@@ -180,7 +186,7 @@ class PlayState extends FlxState
 			name:"Level1",
 			area: { x:0, y:0, w:480, h:512 },
 			player: {
-				pos: { x: 240, y: 480},
+				pos: { x: 240, y: 448},
 				dims: { x: 32, y:32 },
 				force: 10000,
 				initialState: MagnetMode.Off
@@ -192,7 +198,7 @@ class PlayState extends FlxState
 			],
 			goal: {color:FlxColor.PURPLE, pos: {x:240,y:4}, dims: {x:200,y:60}},
 			obstacles: [{color:FlxColor.GOLDENROD, pos: {x:100,y:300}, dims: {x:80,y:60}}],
-			wheels: [{color:FlxColor.GRAY, pos: {x:384,y:160}, dims: {x:60,y:60}, rotationSpeed: 360}]
+			wheels: [{color:FlxColor.GRAY, pos: {x:384,y:160}, dims: {x:96,y:96}, rotationSpeed: 720, path:"assets/images/wheel_96x96.png"}]
 		});
 		
 
@@ -200,9 +206,12 @@ class PlayState extends FlxState
 		FlxG.debugger.visible = true;
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 		
-		currentLevel = "Level1";
-		loadLevel(levelTable.get(currentLevel));
+		currentLevel = "Level0";
 		
+		worldForeground = new FlxSprite(0, 0, "assets/images/ui_cover.png");
+		magnetPaddle = new FlxSprite(0, 0, "assets/images/magnet_paddle.png");
+		
+		loadLevel(levelTable.get(currentLevel));
 	}
 
 	/**
@@ -233,8 +242,12 @@ class PlayState extends FlxState
 	{
 		FlxG.worldBounds.set(lv.area.x + 10, lv.area.y + 10, lv.area.w - 10, lv.area.h - 10);
 		worldArea.set(lv.area.x, lv.area.y, lv.area.w, lv.area.h);	
-		worldDebug.makeGraphic(cast(worldArea.width,Int),cast(worldArea.height,Int), 0x99FFFFFF);
-		worldDebug.setPosition(worldArea.x, worldArea.y);
+		worldBackground.makeGraphic(cast(worldArea.width,Int),cast(worldArea.height,Int), bgColour);
+		worldBackground.setPosition(worldArea.x, worldArea.y);
+		
+		remove(magnetPaddle);
+		add(magnetPaddle);
+		magnetPaddle.setPosition(-(512 - worldArea.width)/ 2, worldArea.y + lv.player.pos.y - lv.player.dims.y/2);
 		
 		if (player != null)
 		{
@@ -259,7 +272,14 @@ class PlayState extends FlxState
 			var obs:FlxSprite = new FlxSprite(obstacleData.pos.x + worldArea.x, obstacleData.pos.y + worldArea.y);
 			obs.moves = false;
 			obs.immovable = true;
-			obs.makeGraphic(obstacleData.dims.x, obstacleData.dims.y, obstacleData.color);
+			if (obstacleData.path != null)
+			{
+				obs.loadGraphic(obstacleData.path);
+			}
+			else
+			{
+				obs.makeGraphic(obstacleData.dims.x, obstacleData.dims.y, obstacleData.color);
+			}
 			obstacles.add(obs);
 		}
 		
@@ -276,6 +296,15 @@ class PlayState extends FlxState
 			var item:Item = new Item(item, worldArea); 
 			items.add(item);
 		}
+		
+		remove(worldForeground);
+		add(worldForeground);
+		
+		remove(movementButton);
+		add(movementButton);
+		
+		remove(magnetButton);
+		add(magnetButton);
 	}
 	
 	

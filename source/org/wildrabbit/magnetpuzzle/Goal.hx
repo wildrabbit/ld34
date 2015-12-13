@@ -24,9 +24,18 @@ class Goal extends FlxSprite
 		
 		bounds = Bounds;
 		
-		super(bounds.x + goalData.pos.x - w/2, bounds.y + goalData.pos.y);
+		super(bounds.x + goalData.pos.x - w / 2, bounds.y + goalData.pos.y);
 		
-		makeGraphic(w, h, goalData.color);
+		if (goalData.path != null)
+		{
+			loadGraphic(goalData.path);
+		}
+		else 
+		{
+			makeGraphic(w, h, goalData.color);	
+		}
+		
+		
 	}
 	public function setPos(x:Float, y:Float):Void
 	{

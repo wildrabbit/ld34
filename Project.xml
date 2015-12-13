@@ -24,6 +24,12 @@
 	
 	<!--Mobile-specific-->
 	<window if="mobile" orientation="landscape" fullscreen="true" width="0" height="0" />
+		
+	<android target-sdk-version="22" />
+	<window hardware="true" allow-shaders="true" require-shaders="true" if="cpp"/>
+	<window vsync="true" antialiasing="4" if="cpp" />
+	<window orientation="portrait" />
+	<window width="0" height="0" background="#FFFFFF" fps="60"  if="mobile" />
 	
 	<!--------------------------------PATHS SETTINGS-------------------------------->
 	
