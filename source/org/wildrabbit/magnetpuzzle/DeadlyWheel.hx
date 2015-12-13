@@ -22,14 +22,14 @@ class DeadlyWheel extends FlxSprite
 		
 		bounds = Bounds;
 
-		super(Data.pos.x - w/2, Data.pos.y - h/2);
+		super(bounds.x + Data.pos.x - w/2, bounds.y + Data.pos.y - h/2);
 		makeGraphic(w, h, Data.color);	
 		angularVelocity = Data.rotationSpeed;
 	}
 	
 	public function setPos(x:Float, y:Float):Void
 	{
-		this.x = x - w / 2;
-		this.y = y - h / 2;
+		this.x = bounds.x + x - w / 2;
+		this.y = bounds.y + y - h / 2;
 	}
 }

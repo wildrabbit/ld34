@@ -90,8 +90,6 @@ class PlayState extends FlxState
 	private var obstacles:FlxTypedGroup<FlxSprite>; //Normal, collidable
 	private var deadlyStuff:FlxTypedGroup<DeadlyWheel>;
 	
-	private var worldSprites:FlxSpriteGroup;
-	
 	private var itemCollisions:FlxGroup;
 	
 	public var worldArea:FlxRect;
@@ -100,6 +98,7 @@ class PlayState extends FlxState
 	private var goal: Goal;
 	
 	private var player:Magnet;
+	private var effect:FlxSprite;
 	
 	private var currentLevel:String;
 	
@@ -117,10 +116,12 @@ class PlayState extends FlxState
 		worldDebug.makeGraphic(cast(worldArea.width,Int),cast(worldArea.height,Int), 0x99FFFFFF);
 		add(worldDebug);
 		
-		worldSprites = new FlxSpriteGroup();
-		add(worldSprites);
-		worldSprites.setPosition(worldArea.x, worldArea.y);
-		worldSprites.add(worldDebug);
+		effect = new FlxSprite(0, 0);
+		effect.loadGraphic("assets/images/effects.png", true, 32, 32, true);
+		effect.animation.add("repel", [0, 1, 2, 3, 4], 10, true);
+		effect.animation.add("attract", [8, 9, 10, 11, 12], 10, true);
+		effect.visible = false;
+		add(effect);
 		
 		// Groups
 		obstacles = new FlxTypedGroup<FlxSprite>();
@@ -145,9 +146,9 @@ class PlayState extends FlxState
 				initialState: MagnetMode.Off
 			},
 			items: [
-				{path: "assets/images/64_pokeball.png", pos: {x: 300, y: 300}, dims: {x:32,y:32}, charge:120},
-				{path: "assets/images/64_pokeball.png", pos: {x: 200, y: 300}, dims: {x:32,y:32}, charge:120},
-				{path: "assets/images/64_pokeball.png", pos: {x: 400, y: 300}, dims: {x:32,y:32}, charge:120},
+				{path: "assets/images/64_pokeball.png", pos: {x: 300, y: 300}, dims: {x:32,y:32}, charge:120}//,
+				//{path: "assets/images/64_pokeball.png", pos: {x: 200, y: 300}, dims: {x:32,y:32}, charge:120},
+				//{path: "assets/images/64_pokeball.png", pos: {x: 400, y: 300}, dims: {x:32,y:32}, charge:120},
 			],
 			goal: {color:FlxColor.SALMON, pos: {x: 300,y:4}, dims: {x:200,y:60}},
 			obstacles: [],
@@ -177,7 +178,7 @@ class PlayState extends FlxState
 		FlxG.debugger.visible = true;
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 		
-		currentLevel = "Level0";
+		currentLevel = "Level1";
 		loadLevel(levelTable.get(currentLevel));
 		
 	}
@@ -204,29 +205,22 @@ class PlayState extends FlxState
 		
 		itemCollisions.clear();
 		itemCollisions = null;
-		
-		worldSprites.clear();
-		worldSprites = null;
 	}
 	
 	public function loadLevel(lv:Level):Void
 	{
-		worldSprites.clear();
-		
 		worldArea.set(lv.area.x, lv.area.y, lv.area.w, lv.area.h);	
 		worldDebug.makeGraphic(cast(worldArea.width,Int),cast(worldArea.height,Int), 0x99FFFFFF);
-		worldDebug.setPosition(0, 0);
-		worldSprites.add(worldDebug);
+		worldDebug.setPosition(worldArea.x, worldArea.y);
 		
 		if (player != null)
 		{
 			remove(player);
 			player = null;
 		}		
-		player = new Magnet(lv.player, worldArea);
+		player = new Magnet(lv.player, worldArea, effect);
 		add(player);
-		worldSprites.add(player);
-
+		
 		if (goal != null)
 		{
 			remove(goal);
@@ -234,7 +228,6 @@ class PlayState extends FlxState
 		}
 		goal = new Goal(lv.goal,worldArea);		
 		add(goal);
-		worldSprites.add(goal);
 		
 		obstacles.clear();
 		for (obstacleData in lv.obstacles)
@@ -244,7 +237,6 @@ class PlayState extends FlxState
 			obs.immovable = true;
 			obs.makeGraphic(obstacleData.dims.x, obstacleData.dims.y, obstacleData.color);
 			obstacles.add(obs);
-			worldSprites.add(obs);
 		}
 		
 		deadlyStuff.clear();
@@ -252,7 +244,6 @@ class PlayState extends FlxState
 		{
 			var wheel:DeadlyWheel = new DeadlyWheel(wheelData, worldArea);
 			deadlyStuff.add(wheel);			
-			worldSprites.add(wheel);
 		}
 		
 		items.clear();
@@ -260,10 +251,7 @@ class PlayState extends FlxState
 		{
 			var item:Item = new Item(item, worldArea); 
 			items.add(item);
-			worldSprites.add(item);
 		}
-		
-		worldSprites.setPosition(lv.area.x, lv.area.y);
 	}
 	
 	
@@ -307,19 +295,19 @@ class PlayState extends FlxState
 	private function onGoalOverlap(x:Item, y:Goal):Void 
 	{
 		x.kill();
-		worldSprites.remove(x);
 		trace("Yay! killed one item!");
 		
 		if (items.countLiving() == 0)
 		{
-			if (currentLevel == "Level0")
-			{
-				currentLevel = "Level1";				
-			}
-			else 
-			{
-				currentLevel = "Level0";
-			}
+			currentLevel = "Level1";				
+			//if (currentLevel == "Level0")
+			//{
+				//currentLevel = "Level1";				
+			//}
+			//else 
+			//{
+				//currentLevel = "Level0";
+			//}
 			loadLevel(levelTable.get(currentLevel));
 		}
 	}
@@ -327,7 +315,6 @@ class PlayState extends FlxState
 	private function onWheelsOverlap(x:Item, y:DeadlyWheel):Void
 	{
 		x.kill();
-		worldSprites.remove(x);
 		trace("D'oh!");
 	}
 }

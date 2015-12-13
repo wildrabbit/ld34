@@ -33,7 +33,7 @@ class Item extends FlxSprite
 		
 		bounds = Bounds;
 		
-		super(itemData.pos.x- w/2,itemData.pos.y - h/2);
+		super(bounds.x + itemData.pos.x- w/2, bounds.y + itemData.pos.y - h/2);
 		loadRotatedGraphic(itemData.path, 32);
 		charge = itemData.charge;
 		drag.set(dragMagnitude, dragMagnitude);
@@ -53,7 +53,7 @@ class Item extends FlxSprite
 		if (source.currentForce > 0 && distance < 48)
 		{
 			velocity.set(0, 0);
-			setPos(sourcePos.x, sourcePos.y - 48 );
+			setPos(sourcePos.x, sourcePos.y - source.w/2 - 4);
 			angle = 0;
 			return;
 		}
@@ -80,37 +80,37 @@ class Item extends FlxSprite
 	{
 		super.update();
 		
-		if (y < 0)
+		if (y < bounds.y)
 		{
-			y = 0;
+			y = bounds.y;
 			velocity.y  = 0;
 		}
-		else if (y + h> bounds.height- h/2)
+		else if (y + h> bounds.y + bounds.height - h/2)
 		{
-			y = bounds.height - 3*h/2;
+			y = bounds.y + bounds.height - 3*h/2;
 			velocity.y  = 0;
 		}
 		
-		if (x < 0)
+		if (x < bounds.x)
 		{
-			x = 0;
+			x = bounds.x;
 			velocity.x = 0;
 		}
-		else if (x + w > bounds.width)
+		else if (x + w > bounds.x + bounds.width)
 		{
-			x = bounds.width - w;
+			x = bounds.x + bounds.width - w;
 			velocity.x = 0;
 		}
 	}
 	
 	public function getPosition():FlxVector
 	{
-		return new FlxVector(x + w / 2, y + w / 2);
+		return new FlxVector(x - bounds.x + w / 2, y - bounds.y + w / 2);
 	}
 	
 	public function setPos(x:Float, y:Float):Void 
 	{
-		this.x = x - w / 2;
-		this.y = y - h / 2;
+		this.x = bounds.x + x - w / 2;
+		this.y = bounds.y + y - h / 2;
 	}
 }

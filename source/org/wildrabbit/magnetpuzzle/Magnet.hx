@@ -30,7 +30,6 @@ import org.wildrabbit.magnetpuzzle.PlayState.PlayerData;
  
 class Magnet extends FlxSprite
 {
-	
 	public var w:Int = 32;
 	public var h:Int = 32;
 	
@@ -54,14 +53,16 @@ class Magnet extends FlxSprite
 	public var radius:Float = 48;
 	private var bounds:FlxRect;
 	
-	public function new(data:PlayerData,Bounds:FlxRect) 
+	private var effect:FlxSprite;
+	
+	public function new(data:PlayerData,Bounds:FlxRect, ?Effect:FlxSprite) 
 	{
 		bounds = Bounds;
 		
 		w = data.dims.x;
 		h = data.dims.y;
 
-		super(data.pos.x - w/2, data.pos.y - h/2, null);	
+		super(bounds.x + data.pos.x - w/2, bounds.y + data.pos.y - h/2, null);	
 		
 		makeGraphic(w, h);
 		
@@ -73,12 +74,14 @@ class Magnet extends FlxSprite
 		
 		velocity.set(0, 0);		
 		gamepad = null;
-		
+
+		effect = Effect;
+
 		lastMv = MovementMode.Right;
 		changeMovement(MovementMode.Off);		
 		
 		lastMg = MagnetMode.Repel;
-		changeMagnet(MagnetMode.Off);		
+		changeMagnet(MagnetMode.Off);
 	}
 	
 	override public function update():Void
@@ -98,6 +101,9 @@ class Magnet extends FlxSprite
 			changeMovement(MovementMode.Right);
 			lastMv = MovementMode.Right;
 		}
+		
+		effect.x = x + w/2 - effect.width/2;
+		effect.y = y - effect.height - 4; 
 	}
 	
 	private function processInput():Void
@@ -164,21 +170,36 @@ class Magnet extends FlxSprite
 			{
 				color = FlxColor.GRAY;
 				currentForce = 0;
+				if (effect != null)
+				{
+					effect.visible = false;
+					effect.animation.pause();
+				}
 			}
 			case MagnetMode.Attract:
 			{
 				color = FlxColor.RED;
 				currentForce = forceMagnitude;
+				if (effect != null)
+				{
+					effect.visible = true;
+					effect.animation.play("attract");
+				}
 			}
 			case MagnetMode.Repel:
 			{
 				color = FlxColor.BLUE;
 				currentForce = -forceMagnitude;
+				if (effect != null)
+				{
+					effect.visible = true;
+					effect.animation.play("repel");
+				}
 			}
 		}
 	}
 	public function getPosition():FlxVector 
 	{
-		return new FlxVector(x + w/2, y + h/2);
+		return new FlxVector(x - bounds.x + w/2, y - bounds.y + h/2);
 	}
 }
