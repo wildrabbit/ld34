@@ -119,7 +119,7 @@ class PlayState extends FlxState
 	
 	private var bgColour:Int = 0xffecc284;
 	
-	private var txtColour:Int = 0xff7c3e5c;
+	private var txtColour:Int = 0xff4c2e54;
 	
 	private var goal: Goal;
 	
@@ -148,6 +148,19 @@ class PlayState extends FlxState
 	private var gameOver:Bool = false;
 	private var gameLost:Bool = false;
 	private var gameWon:Bool = false;
+	
+	
+	private var sequencePlaying:Bool = false;
+	private var newLevelRemaining:Float = 0.0;
+	private var newLevelDuration:Float = 2.0;
+	
+	private var waitingLevelEnd:Bool = false;
+	private var waitingDelayRemaining:Float = 0.0;
+	private var waitingDelayDuration: Float = 1.5;
+	
+	private var transitionBg:FlxSprite;
+	private var textEndLevel:FlxText;
+	private var textNewLevel:FlxText;
 	
 
 	/**
@@ -208,52 +221,19 @@ class PlayState extends FlxState
 
 			levelTable.set(level.name, level);
 		}
-		//levelTable.set("Level0",{
-			//name:"Level0",
-			//area: { x:0, y:0, w:480, h:512 },
-			//player: {
-				//pos: { x: 240, y: 448 },
-				//dims: { x: 64, y:64 },
-				//force: 10000,
-				//initialState: MagnetMode.Off,
-				//path:"assets/images/magnet.png",
-				//offIdx:0,
-				//posIdx:1,
-				//negIdx:2
-			//},
-			//items: [
-				//{path: "assets/images/64_pokeball.png", pos: {x: 240, y: 200}, dims: {x:32,y:32}, charge:120}//,
-				////{path: "assets/images/64_pokeball.png", pos: {x: 200, y: 300}, dims: {x:32,y:32}, charge:120},
-				////{path: "assets/images/64_pokeball.png", pos: {x: 400, y: 300}, dims: {x:32,y:32}, charge:120},
-			//],
-			//goal: {color:Std.string(FlxColor.SALMON), pos: {x: 240,y:4}, dims: {x:200,y:60}, path:"assets/images/goal_200x60.png"},
-			//obstacles: [],
-			//wheels: []
-		//});
-		//levelTable.set("Level1",{
-			//name:"Level1",k
-			//area: { x:0, y:0, w:480, h:512 },
-			//player: {
-				//pos: { x: 240, y: 448},
-				//dims: { x: 64, y:64 },
-				//force: 10000,
-				//initialState: MagnetMode.Off,
-				//path:"assets/images/magnet.png",
-				//offIdx:0,
-				//posIdx:1,
-				//negIdx:2
-			//},
-			//items: [
-				//{path: "assets/images/64_pokeball.png", pos: {x: 240, y: 200}, dims: {x:32,y:32}, charge:250},
-				//{path: "assets/images/64_pokeball.png", pos: {x: 160, y: 200}, dims: {x:32,y:32}, charge:-250},
-				//{path: "assets/images/64_pokeball.png", pos: {x: 320, y: 200}, dims: {x:32,y:32}, charge:250},
-			//],
-			//goal: {color:Std.string(FlxColor.PURPLE), pos: {x:140,y:60}, dims: {x:200,y:60}, path:"assets/images/goal_200x60.png"},
-			//obstacles: [{color:Std.string(FlxColor.GOLDENROD), pos: {x:100,y:300}, dims: {x:96,y:64}, path:"assets/images/crate.png"}],
-			//wheels: [{color:Std.string(FlxColor.GRAY), pos: {x:384,y:120}, dims: {x:96,y:96}, rotationSpeed: 720, path:"assets/images/wheel_96x96.png"}]
-		//});
 		
-
+		transitionBg = new FlxSprite(0, 0);
+		transitionBg.makeGraphic(FlxG.width, FlxG.height, bgColour);
+		
+		textEndLevel = new FlxText(90, 240, 300, "...", 24);
+		textEndLevel.alignment = "center";
+		textEndLevel.color = txtColour;
+		textNewLevel = new FlxText(90, 240, 300, "...", 24);
+		textNewLevel.color = txtColour;
+		textNewLevel.alignment = "center";
+		
+		sequencePlaying = false;
+		waitingLevelEnd = false;
 		
 		FlxG.debugger.visible = true;
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
@@ -355,6 +335,18 @@ class PlayState extends FlxState
 			items.add(item);
 		}
 		
+		remove(transitionBg);
+		add(transitionBg);
+		transitionBg.visible = false;
+		
+		remove(textEndLevel);
+		add(textEndLevel);
+		textEndLevel.visible = false;
+		
+		remove(textNewLevel);
+		add(textNewLevel);
+		textNewLevel.visible = false;
+		
 		remove(worldForeground);
 		add(worldForeground);
 		
@@ -366,6 +358,10 @@ class PlayState extends FlxState
 		
 		lostCharges = 0;
 		successfulCharges = 0;
+		
+		sequencePlaying = true;
+		newLevelRemaining = newLevelDuration;
+		showNewLevel();
 	}
 	
 	
@@ -374,11 +370,47 @@ class PlayState extends FlxState
 	 */
 	override public function update():Void
 	{
+		if (waitingLevelEnd)
+		{
+			if (waitingDelayRemaining < waitingDelayDuration * 0.7)			
+			{
+				if (waitingDelayRemaining <= 0 || (FlxG.keys.justPressed.ANY || FlxG.mouse.justPressed || FlxG.touches.justStarted(FlxG.touches.list).length > 0))
+				{
+					hideEndLevel();
+					nextLevel();
+					waitingLevelEnd = false;					
+				}
+				else
+				{
+					waitingDelayRemaining -= FlxG.elapsed;
+				}
+				
+			}
+			else
+			{
+				waitingDelayRemaining -= FlxG.elapsed;
+			}
+			return;
+		}
+		if (sequencePlaying)
+		{
+			if (newLevelRemaining <= 0)
+			{
+				newLevelRemaining = 0;
+				sequencePlaying = false;
+				hideNewLevel();
+			}
+			else newLevelRemaining -= FlxG.elapsed;
+			return;
+		}
+		
 		if (gameOver)
 		{
 			if (FlxG.keys.justPressed.ANY || FlxG.mouse.justPressed || FlxG.touches.justStarted(FlxG.touches.list).length > 0)
 			{
 				resetGame();
+				FlxG.sound.play("assets/sounds/click.wav");
+				FlxG.switchState(new MenuState());
 			}
 			return;			
 		}
@@ -544,6 +576,7 @@ class PlayState extends FlxState
 	{
 		successfulCharges++;
 		trace("Yay, took one item to the goal!");
+		FlxG.sound.play("assets/sounds/arrive.wav");
 		
 		onChargeKilled(x);
 	}
@@ -552,6 +585,7 @@ class PlayState extends FlxState
 	{
 		lostCharges++;
 		trace("D'oh! Got hit!!");
+		FlxG.sound.play("assets/sounds/wheel.wav");
 		onChargeKilled(x);
 	
 	}
@@ -564,7 +598,10 @@ class PlayState extends FlxState
 		{
 			if ( successfulCharges >= necessaryCharges)
 			{
-				nextLevel();				
+				waitingLevelEnd = true;
+				waitingDelayRemaining = waitingDelayDuration;
+				showLevelEnd();
+				//nextLevel();				
 			}
 			else 
 			{
@@ -574,6 +611,32 @@ class PlayState extends FlxState
 				trace("UH-OH...YOU LOST");
 			}	
 		}
+	}
+	
+	private function showLevelEnd():Void
+	{
+		transitionBg.visible = true;
+		textEndLevel.text = "Level beaten!";
+		textEndLevel.visible = true;
+	}
+	
+	private function hideEndLevel():Void
+	{
+		transitionBg.visible = false;
+		textEndLevel.visible = false;
+	}
+	
+	private function showNewLevel():Void
+	{
+		transitionBg.visible = true;
+		textNewLevel.text = "New level!!";
+		textNewLevel.visible = true;
+	}
+	
+	private function hideNewLevel():Void
+	{
+		transitionBg.visible = false;
+		textNewLevel.visible = false;
 	}
 	
 	private function nextLevel (wrap:Bool = false):Void	

@@ -3,6 +3,7 @@ package org.wildrabbit.magnetpuzzle;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.input.gamepad.FlxGamepad;
+import flixel.system.FlxSound;
 import flixel.util.FlxColor;
 import flixel.util.FlxColorUtil;
 import flixel.util.FlxRect;
@@ -57,6 +58,11 @@ class Magnet extends FlxSprite
 	
 	private var animated:Bool;
 	
+	private var mvSound:FlxSound;
+	private var attractSound:FlxSound;
+	private var repelSound:FlxSound;
+				
+	
 	public function new(data:PlayerData,Bounds:FlxRect, ?Effect:FlxSprite) 
 	{
 		bounds = Bounds;
@@ -81,6 +87,10 @@ class Magnet extends FlxSprite
 		}
 		
 		forceMagnitude = data.force;
+				
+		mvSound = FlxG.sound.load("assets/sounds/move.wav",1,true);
+		attractSound = FlxG.sound.load("assets/sounds/attract.wav");
+		repelSound = FlxG.sound.load("assets/sounds/repel.wav");
 		
 		velocity.set(0, 0);		
 		gamepad = null;
@@ -92,6 +102,7 @@ class Magnet extends FlxSprite
 		
 		lastMg = MagnetMode.Negative;
 		changeMagnet(MagnetMode.Off);
+
 	}
 	
 	override public function update():Void
@@ -157,20 +168,30 @@ class Magnet extends FlxSprite
 	
 	private function changeMovement(newMvMode:MovementMode ):Void 
 	{
+		var old:MovementMode = mvMode;
 		mvMode = newMvMode;
 		switch mvMode
 		{
 			case MovementMode.Off: 
 			{
 				velocity.set(0, 0);
+				mvSound.stop();
 			}
 			case MovementMode.Left:
-			{
+			{				
 				velocity.set( -speed, 0);
+				if (old == MovementMode.Off)
+				{
+					mvSound.play();
+				}
 			}
 			case MovementMode.Right:
 			{
 				velocity.set(speed, 0);
+				if (old == MovementMode.Off)
+				{
+					mvSound.play();
+				}				
 			}
 		}		
 	}
@@ -192,6 +213,7 @@ class Magnet extends FlxSprite
 				{
 					color = FlxColor.GRAY;				
 				}
+				
 				currentForce = 0;
 				if (effect != null)
 				{
@@ -209,6 +231,7 @@ class Magnet extends FlxSprite
 				{
 					color = FlxColor.RED;				
 				}
+				attractSound.play();
 				currentForce = forceMagnitude;
 				if (effect != null)
 				{
@@ -233,6 +256,7 @@ class Magnet extends FlxSprite
 					effect.visible = true;
 					effect.animation.play("repel");
 				}
+				repelSound.play();
 			}
 		}
 	}

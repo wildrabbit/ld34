@@ -43,6 +43,7 @@ class MenuState extends FlxState
 		
 		if (FlxG.keys.justPressed.ANY || FlxG.mouse.justPressed || FlxG.touches.justStarted(FlxG.touches.list).length > 0)
 		{
+			FlxG.sound.play("assets/sounds/click.wav");
 			FlxG.switchState(new PlayState());
 		}
 	}
