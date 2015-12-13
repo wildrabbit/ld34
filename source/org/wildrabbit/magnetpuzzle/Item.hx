@@ -116,7 +116,14 @@ class Item extends FlxSprite
 				{
 					unitDirection.set(0, 1);
 					setPos(sourcePos.x - unitDirection.x * 48, sourcePos.y - unitDirection.y * 48);
-					angle = 0;
+					angle = direction.radians * FlxAngle.TO_DEG - 90;
+				}
+				else if (Math.abs(angle) > 80)
+				{
+					var newDirectionAngle:Float = FlxMath.signOf(angle) * 80;
+					unitDirection.set(Math.cos((newDirectionAngle + 90) * FlxAngle.TO_RAD), Math.sin((newDirectionAngle + 90) * FlxAngle.TO_RAD));
+					setPos(sourcePos.x - unitDirection.x * 48, sourcePos.y - unitDirection.y * 48);
+					angle = newDirectionAngle;			 
 				}
 			}
 		}

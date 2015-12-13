@@ -104,6 +104,24 @@ class Magnet extends FlxSprite
 		
 		effect.x = x + w/2 - effect.width/2;
 		effect.y = y - effect.height - 4; 
+		immovable = true;
+	}
+	
+	public function OnMoveJustPressed ():Void
+	{
+		if (lastMv == MovementMode.Left)
+		{
+			changeMovement(lastMv);
+		}
+		else if (lastMv == MovementMode.Right)
+		{
+			changeMovement(lastMv);
+		}
+	}
+	
+	public function OnMoveJustReleased (): Void 
+	{
+		changeMovement(MovementMode.Off);
 	}
 	
 	private function processInput():Void
@@ -113,22 +131,22 @@ class Magnet extends FlxSprite
 			//
 		//}
 		
-		var buttonMove:Bool = FlxG.keys.anyJustPressed(["J"]);
-		if (buttonMove)
-		{
-			if (lastMv == MovementMode.Left)
-			{
-				changeMovement(lastMv);
-			}
-			else if (lastMv == MovementMode.Right)
-			{
-				changeMovement(lastMv);
-			}
-		}
-		else if (FlxG.keys.anyJustReleased(["J"]))
-		{
-			changeMovement(MovementMode.Off);
-		}
+		//var buttonMove:Bool = FlxG.keys.anyJustPressed(["J"]);
+		//if (buttonMove)
+		//{
+			//if (lastMv == MovementMode.Left)
+			//{
+				//changeMovement(lastMv);
+			//}
+			//else if (lastMv == MovementMode.Right)
+			//{
+				//changeMovement(lastMv);
+			//}
+		//}
+		//else if (FlxG.keys.anyJustReleased(["J"]))
+		//{
+			//changeMovement(MovementMode.Off);
+		//}
 
 		var buttonMagnet:Bool = FlxG.keys.anyJustPressed(["K"]);
 		if (buttonMagnet)

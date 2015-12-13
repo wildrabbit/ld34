@@ -16,8 +16,6 @@ import flixel.util.FlxSort;
 import flixel.util.FlxVector;
 import flixel.util.FlxPoint;
 import haxe.Json;
-import haxe.remoting.FlashJsConnection;
-import openfl.utils.Dictionary;
 import org.wildrabbit.magnetpuzzle.Magnet.MagnetMode;
 import org.wildrabbit.magnetpuzzle.PlayState.Vec2;
 
@@ -105,12 +103,25 @@ class PlayState extends FlxState
 	
 	private var levelTable: Map<String,Level>;
 	
+	private var movementButton: FlxSprite;
+	
+	private var movePressed:Bool;
+	
 	/**
 	 * Function that is called up when to state is created to set it up.
 	 */
 	override public function create():Void
 	{
 		super.create();
+		
+		movementButton = new FlxSprite(32, 520);
+		movementButton.loadGraphic("assets/images/move_button.png", true, 128, 128);
+		movementButton.animation.add("normal", [0], 1, false);
+		movementButton.animation.add("pressed", [1], 1, false);
+		movePressed = false;
+		movementButton.animation.play("normal");
+		add(movementButton);
+		
 		
 		worldArea = new FlxRect(0, 0, FlxG.width, FlxG.height);
 		worldDebug = new FlxSprite(worldArea.x, worldArea.y);
@@ -139,39 +150,39 @@ class PlayState extends FlxState
 		
 		levelTable.set("Level0",{
 			name:"Level0",
-			area: { x:100, y:0, w:600, h:600 },
+			area: { x:0, y:0, w:480, h:512 },
 			player: {
-				pos: { x: 300, y: 584 },
+				pos: { x: 240, y: 480 },
 				dims: { x: 32, y:32 },
 				force: 10000,
 				initialState: MagnetMode.Off
 			},
 			items: [
-				{path: "assets/images/64_pokeball.png", pos: {x: 300, y: 300}, dims: {x:32,y:32}, charge:120}//,
+				{path: "assets/images/64_pokeball.png", pos: {x: 240, y: 200}, dims: {x:32,y:32}, charge:120}//,
 				//{path: "assets/images/64_pokeball.png", pos: {x: 200, y: 300}, dims: {x:32,y:32}, charge:120},
 				//{path: "assets/images/64_pokeball.png", pos: {x: 400, y: 300}, dims: {x:32,y:32}, charge:120},
 			],
-			goal: {color:FlxColor.SALMON, pos: {x: 300,y:4}, dims: {x:200,y:60}},
+			goal: {color:FlxColor.SALMON, pos: {x: 240,y:4}, dims: {x:200,y:60}},
 			obstacles: [],
 			wheels: []
 		});
 		levelTable.set("Level1",{
 			name:"Level1",
-			area: { x:100, y:0, w:600, h:600 },
+			area: { x:0, y:0, w:480, h:512 },
 			player: {
-				pos: { x: 300, y: 584},
+				pos: { x: 240, y: 480},
 				dims: { x: 32, y:32 },
 				force: 10000,
 				initialState: MagnetMode.Off
 			},
 			items: [
-				{path: "assets/images/64_pokeball.png", pos: {x: 300, y: 300}, dims: {x:32,y:32}, charge:250},
-				{path: "assets/images/64_pokeball.png", pos: {x: 200, y: 300}, dims: {x:32,y:32}, charge:-250},
-				{path: "assets/images/64_pokeball.png", pos: {x: 400, y: 300}, dims: {x:32,y:32}, charge:250},
+				{path: "assets/images/64_pokeball.png", pos: {x: 240, y: 200}, dims: {x:32,y:32}, charge:250},
+				{path: "assets/images/64_pokeball.png", pos: {x: 160, y: 200}, dims: {x:32,y:32}, charge:-250},
+				{path: "assets/images/64_pokeball.png", pos: {x: 320, y: 200}, dims: {x:32,y:32}, charge:250},
 			],
-			goal: {color:FlxColor.PURPLE, pos: {x:300,y:4}, dims: {x:200,y:60}},
+			goal: {color:FlxColor.PURPLE, pos: {x:240,y:4}, dims: {x:200,y:60}},
 			obstacles: [{color:FlxColor.GOLDENROD, pos: {x:100,y:300}, dims: {x:80,y:60}}],
-			wheels: [{color:FlxColor.GRAY, pos: {x:480,y:200}, dims: {x:72,y:72}, rotationSpeed: 360}]
+			wheels: [{color:FlxColor.GRAY, pos: {x:384,y:160}, dims: {x:60,y:60}, rotationSpeed: 360}]
 		});
 		
 
@@ -210,6 +221,7 @@ class PlayState extends FlxState
 	
 	public function loadLevel(lv:Level):Void
 	{
+		FlxG.worldBounds.set(lv.area.x + 10, lv.area.y + 10, lv.area.w - 10, lv.area.h - 10);
 		worldArea.set(lv.area.x, lv.area.y, lv.area.w, lv.area.h);	
 		worldDebug.makeGraphic(cast(worldArea.width,Int),cast(worldArea.height,Int), 0x99FFFFFF);
 		worldDebug.setPosition(worldArea.x, worldArea.y);
@@ -261,6 +273,7 @@ class PlayState extends FlxState
 	 */
 	override public function update():Void
 	{
+		processInput();
 		
 		FlxG.overlap(items, goal, onGoalOverlap);
 		FlxG.overlap(items, deadlyStuff, onWheelsOverlap);
@@ -278,10 +291,78 @@ class PlayState extends FlxState
 				x.removeForce();
 			}
 		}
-		FlxG.collide(items, itemCollisions);
-		
 		super.update();
+		
+		FlxG.collide(player, items);
+		FlxG.collide(items, itemCollisions);
 	}	
+	
+	private function processInput():Void
+	{
+		var buttonPressed:Bool = FlxG.keys.anyJustPressed(["J"]);
+		if (!buttonPressed)
+		{
+			buttonPressed = FlxG.mouse.justPressed && movementButton.overlapsPoint(new FlxPoint(FlxG.mouse.x, FlxG.mouse.y));
+		}
+		if (!buttonPressed)
+		{
+			for (touch in FlxG.touches.list)
+			{
+				if (!(touch.overlaps(movementButton)))
+				{
+					continue;
+				}
+				if (touch.justPressed)
+				{
+					buttonPressed = true;
+					break;
+				}				
+			}
+		}
+		if (buttonPressed)
+		{
+			OnMovePressed();
+		}
+		else 
+		{
+			var buttonReleased:Bool = FlxG.keys.anyJustReleased(["J"]);
+			if (!buttonReleased)
+			{
+				buttonReleased = FlxG.mouse.justReleased && movePressed;
+			}
+			if (!buttonReleased)
+			{
+				for (touch in FlxG.touches.list)
+				{
+					if (touch.justReleased && movePressed)
+					{
+						buttonReleased = true;
+						break;
+					}
+				}
+			}
+			if (buttonReleased)
+			{
+				OnMoveReleased();	
+			}			
+		}
+
+	}
+	
+	private function OnMovePressed():Void
+	{
+		movementButton.animation.play("pressed");
+		player.OnMoveJustPressed();
+		movePressed = true;
+	}
+	
+	private function OnMoveReleased ():Void
+	{
+		movementButton.animation.play("normal");
+		player.OnMoveJustReleased();
+		movePressed = false;
+	}
+	
 	private function sortByX(order:Int, ob1:Item, ob2:Item):Int 
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, ob1.x, ob2.x);		
@@ -298,16 +379,15 @@ class PlayState extends FlxState
 		trace("Yay! killed one item!");
 		
 		if (items.countLiving() == 0)
-		{
-			currentLevel = "Level1";				
-			//if (currentLevel == "Level0")
-			//{
-				//currentLevel = "Level1";				
-			//}
-			//else 
-			//{
-				//currentLevel = "Level0";
-			//}
+		{				
+			if (currentLevel == "Level0")
+			{
+				currentLevel = "Level1";				
+			}
+			else 
+			{
+				currentLevel = "Level0";
+			}
 			loadLevel(levelTable.get(currentLevel));
 		}
 	}
