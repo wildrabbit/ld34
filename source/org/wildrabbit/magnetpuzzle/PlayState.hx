@@ -360,10 +360,21 @@ class PlayState extends FlxState
 		
 		var ascending:Bool = true;
 		buttonPressed = FlxG.keys.anyJustPressed(["K"]);
-		//if (!buttonPressed)
-		//{
-			//
-		//}
+		if (!buttonPressed)
+		{
+			for (swipe in FlxG.swipes)
+			{
+				if (!magnetButton.overlapsPoint(swipe.startPosition)) continue;
+				
+				trace("distance: " + Std.string(swipe.distance) + ", angle: " + Std.string(swipe.angle));
+				if (swipe.distance > 24 && (Math.abs(swipe.angle) < 20 || Math.abs(swipe.angle) > 160))
+				{
+					buttonPressed = true;
+					ascending = Math.abs(swipe.angle) > 160;
+					break;
+				}
+			}
+		}
 		
 		if (buttonPressed)
 		{
