@@ -16,6 +16,7 @@ import flixel.util.FlxSort;
 import flixel.util.FlxVector;
 import flixel.util.FlxPoint;
 import haxe.Json;
+import openfl.Assets;
 import org.wildrabbit.magnetpuzzle.Magnet.MagnetMode;
 import org.wildrabbit.magnetpuzzle.PlayState.Vec2;
 
@@ -60,6 +61,7 @@ typedef ItemData =
 typedef Level =
 {
 	var name:String;
+	var required:Int;
 	var area:LevelRect;
 	var player:PlayerData;
 	var items:Array<ItemData>;
@@ -70,7 +72,7 @@ typedef Level =
 
 typedef ObstacleData =
 {
-	var color:Int;
+	var color:String;
 	var pos:Vec2;
 	var dims:IntVec2;
 	@:optional var path:String;
@@ -78,7 +80,7 @@ typedef ObstacleData =
 
 typedef WheelData =
 {
-	var color:Int;
+	var color:String;
 	var pos:Vec2;
 	var path:String;
 	var dims:IntVec2;
@@ -91,6 +93,11 @@ typedef WheelData =
 	 var Key = 0;
 	 var Mouse = 1;
 	 var Touch = 2;
+ }
+ 
+ typedef LevelList = 
+ {
+	 var levels:Array<Level>;
  }
 
 /**
@@ -118,8 +125,9 @@ class PlayState extends FlxState
 	private var player:Magnet;
 	private var effect:FlxSprite;
 	
-	private var currentLevel:String;
+	private var currentLevelIndex:Int;
 	
+	private var levelSequence:Array<String>;
 	private var levelTable: Map<String,Level>;
 	
 	private var movementButton: FlxSprite;
@@ -132,6 +140,15 @@ class PlayState extends FlxState
 	private static var moveKeys:Array<String> = ["F", "U"];
 	private static var magnetKeys:Array<String> = ["J", "H"];
 	
+	private var necessaryCharges = 1;
+	private var successfulCharges = 0;
+	private var lostCharges = 0;
+	
+	private var gameOver:Bool = false;
+	private var gameLost:Bool = false;
+	private var gameWon:Bool = false;
+	
+
 	/**
 	 * Function that is called up when to state is created to set it up.
 	 */
@@ -178,66 +195,78 @@ class PlayState extends FlxState
 		itemCollisions.add(items);
 		itemCollisions.add(obstacles);
 		
-		levelTable = new Map<String,Level>();
+		var levels:String = Assets.getText("assets/data/levels.json");
+		trace(levels);
+		var levelList:LevelList = Json.parse(levels);
 		
-		levelTable.set("Level0",{
-			name:"Level0",
-			area: { x:0, y:0, w:480, h:512 },
-			player: {
-				pos: { x: 240, y: 448 },
-				dims: { x: 64, y:64 },
-				force: 10000,
-				initialState: MagnetMode.Off,
-				path:"assets/images/magnet.png",
-				offIdx:0,
-				posIdx:1,
-				negIdx:2
-			},
-			items: [
-				{path: "assets/images/64_pokeball.png", pos: {x: 240, y: 200}, dims: {x:32,y:32}, charge:120}//,
-				//{path: "assets/images/64_pokeball.png", pos: {x: 200, y: 300}, dims: {x:32,y:32}, charge:120},
-				//{path: "assets/images/64_pokeball.png", pos: {x: 400, y: 300}, dims: {x:32,y:32}, charge:120},
-			],
-			goal: {color:FlxColor.SALMON, pos: {x: 240,y:4}, dims: {x:200,y:60}, path:"assets/images/goal_200x60.png"},
-			obstacles: [],
-			wheels: []
-		});
-		levelTable.set("Level1",{
-			name:"Level1",
-			area: { x:0, y:0, w:480, h:512 },
-			player: {
-				pos: { x: 240, y: 448},
-				dims: { x: 64, y:64 },
-				force: 10000,
-				initialState: MagnetMode.Off,
-				path:"assets/images/magnet.png",
-				offIdx:0,
-				posIdx:1,
-				negIdx:2
-			},
-			items: [
-				{path: "assets/images/64_pokeball.png", pos: {x: 240, y: 200}, dims: {x:32,y:32}, charge:250},
-				{path: "assets/images/64_pokeball.png", pos: {x: 160, y: 200}, dims: {x:32,y:32}, charge:-250},
-				{path: "assets/images/64_pokeball.png", pos: {x: 320, y: 200}, dims: {x:32,y:32}, charge:250},
-			],
-			goal: {color:FlxColor.PURPLE, pos: {x:140,y:60}, dims: {x:200,y:60}, path:"assets/images/goal_200x60.png"},
-			obstacles: [{color:FlxColor.GOLDENROD, pos: {x:100,y:300}, dims: {x:96,y:64}, path:"assets/images/crate.png"}],
-			wheels: [{color:FlxColor.GRAY, pos: {x:384,y:120}, dims: {x:96,y:96}, rotationSpeed: 720, path:"assets/images/wheel_96x96.png"}]
-		});
+		levelTable = new Map<String,Level>();
+		levelSequence = new Array<String>();
+		for (level in levelList.levels)
+		{
+			levelSequence.push(level.name);
+
+			levelTable.set(level.name, level);
+		}
+		//levelTable.set("Level0",{
+			//name:"Level0",
+			//area: { x:0, y:0, w:480, h:512 },
+			//player: {
+				//pos: { x: 240, y: 448 },
+				//dims: { x: 64, y:64 },
+				//force: 10000,
+				//initialState: MagnetMode.Off,
+				//path:"assets/images/magnet.png",
+				//offIdx:0,
+				//posIdx:1,
+				//negIdx:2
+			//},
+			//items: [
+				//{path: "assets/images/64_pokeball.png", pos: {x: 240, y: 200}, dims: {x:32,y:32}, charge:120}//,
+				////{path: "assets/images/64_pokeball.png", pos: {x: 200, y: 300}, dims: {x:32,y:32}, charge:120},
+				////{path: "assets/images/64_pokeball.png", pos: {x: 400, y: 300}, dims: {x:32,y:32}, charge:120},
+			//],
+			//goal: {color:Std.string(FlxColor.SALMON), pos: {x: 240,y:4}, dims: {x:200,y:60}, path:"assets/images/goal_200x60.png"},
+			//obstacles: [],
+			//wheels: []
+		//});
+		//levelTable.set("Level1",{
+			//name:"Level1",k
+			//area: { x:0, y:0, w:480, h:512 },
+			//player: {
+				//pos: { x: 240, y: 448},
+				//dims: { x: 64, y:64 },
+				//force: 10000,
+				//initialState: MagnetMode.Off,
+				//path:"assets/images/magnet.png",
+				//offIdx:0,
+				//posIdx:1,
+				//negIdx:2
+			//},
+			//items: [
+				//{path: "assets/images/64_pokeball.png", pos: {x: 240, y: 200}, dims: {x:32,y:32}, charge:250},
+				//{path: "assets/images/64_pokeball.png", pos: {x: 160, y: 200}, dims: {x:32,y:32}, charge:-250},
+				//{path: "assets/images/64_pokeball.png", pos: {x: 320, y: 200}, dims: {x:32,y:32}, charge:250},
+			//],
+			//goal: {color:Std.string(FlxColor.PURPLE), pos: {x:140,y:60}, dims: {x:200,y:60}, path:"assets/images/goal_200x60.png"},
+			//obstacles: [{color:Std.string(FlxColor.GOLDENROD), pos: {x:100,y:300}, dims: {x:96,y:64}, path:"assets/images/crate.png"}],
+			//wheels: [{color:Std.string(FlxColor.GRAY), pos: {x:384,y:120}, dims: {x:96,y:96}, rotationSpeed: 720, path:"assets/images/wheel_96x96.png"}]
+		//});
 		
 
 		
 		FlxG.debugger.visible = true;
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 		
-		currentLevel = "Level0";
-		
 		worldForeground = new FlxSprite(0, 0, "assets/images/ui_cover.png");
 		magnetPaddle = new FlxSprite(0, 0, "assets/images/magnet_paddle.png");
 		magnetPaddle.moves = false;
 		magnetPaddle.immovable = true;
 		
-		loadLevel(levelTable.get(currentLevel));
+		if (levelSequence.length > 0)
+		{
+			currentLevelIndex = 0;
+			loadLevel(levelTable.get(levelSequence[currentLevelIndex]));
+		}
 	}
 
 	/**
@@ -266,6 +295,8 @@ class PlayState extends FlxState
 	
 	public function loadLevel(lv:Level):Void
 	{
+		necessaryCharges = lv.required;
+		
 		FlxG.worldBounds.set(lv.area.x + 10, lv.area.y + 10, lv.area.w - 10, lv.area.h - 10);
 		worldArea.set(lv.area.x, lv.area.y, lv.area.w, lv.area.h);	
 		worldBackground.makeGraphic(cast(worldArea.width,Int),cast(worldArea.height,Int), bgColour);
@@ -304,7 +335,7 @@ class PlayState extends FlxState
 			}
 			else
 			{
-				obs.makeGraphic(obstacleData.dims.x, obstacleData.dims.y, obstacleData.color);
+				obs.makeGraphic(obstacleData.dims.x, obstacleData.dims.y, Std.parseInt(obstacleData.color));
 			}
 			obstacles.add(obs);
 		}
@@ -331,6 +362,9 @@ class PlayState extends FlxState
 		
 		remove(magnetButton);
 		add(magnetButton);
+		
+		lostCharges = 0;
+		successfulCharges = 0;
 	}
 	
 	
@@ -339,6 +373,15 @@ class PlayState extends FlxState
 	 */
 	override public function update():Void
 	{
+		if (gameOver)
+		{
+			if (FlxG.keys.justPressed.ANY || FlxG.mouse.justPressed)
+			{
+				resetGame();
+			}
+			return;			
+		}
+		
 		processInput();
 		
 		FlxG.overlap(items, goal, onGoalOverlap);
@@ -492,26 +535,65 @@ class PlayState extends FlxState
 	
 	private function onGoalOverlap(x:Item, y:Goal):Void 
 	{
-		x.kill();
-		trace("Yay! killed one item!");
+		successfulCharges++;
+		trace("Yay, took one item to the goal!");
 		
-		if (items.countLiving() == 0)
-		{				
-			if (currentLevel == "Level0")
-			{
-				currentLevel = "Level1";				
-			}
-			else 
-			{
-				currentLevel = "Level0";
-			}
-			loadLevel(levelTable.get(currentLevel));
-		}
+		onChargeKilled(x);
 	}
 	
 	private function onWheelsOverlap(x:Item, y:DeadlyWheel):Void
 	{
-		x.kill();
-		trace("D'oh!");
+		lostCharges++;
+		trace("D'oh! Got hit!!");
+		onChargeKilled(x);
+	
+	}
+	
+	private function onChargeKilled(charge:Item):Void
+	{
+		charge.kill();
+		
+		if (items.countLiving() == 0 && successfulCharges >= necessaryCharges)
+		{
+			nextLevel();
+		}
+		else 
+		{
+			gameOver = true;
+			gameLost = true;
+			gameWon = false;
+			trace("UH-OH...YOU LOST");
+		}	
+	}
+	
+	private function nextLevel ():Void	
+	{
+		currentLevelIndex++;
+		if (currentLevelIndex < levelSequence.length)
+		{
+			loadLevel(levelTable.get(levelSequence[currentLevelIndex]));				
+		}
+		else 
+		{
+			gameOver = true;
+			gameLost = false;
+			gameWon = true;
+			
+			trace("CONGRATS, YOU'VE REACHED THE END!");
+		}
+	}
+	
+	private function resetGame():Void
+	{
+		currentLevelIndex = 0;
+		if (currentLevelIndex < levelSequence.length)
+		{
+			loadLevel(levelTable.get(levelSequence[currentLevelIndex]));
+			gameOver = gameWon = gameLost = false;
+		}
+		else 
+		{
+			trace("WTF...no levels");
+		}
 	}
 }

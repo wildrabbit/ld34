@@ -32,7 +32,7 @@ class Goal extends FlxSprite
 		}
 		else 
 		{
-			makeGraphic(w, h, goalData.color);	
+			makeGraphic(w, h, Std.parseInt(goalData.color));	
 		}
 		
 		

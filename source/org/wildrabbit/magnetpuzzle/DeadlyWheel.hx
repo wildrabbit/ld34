@@ -29,7 +29,7 @@ class DeadlyWheel extends FlxSprite
 		}
 		else 
 		{
-			makeGraphic(w, h, Data.color);		
+			makeGraphic(w, h, Std.parseInt(Data.color));		
 		}
 		
 		angularVelocity = Data.rotationSpeed;

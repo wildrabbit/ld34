@@ -1,0 +1,47 @@
+{
+"levels" :[
+ {
+	"required": 1,
+	"name":"Level0",
+	"area": { "x":0, "y":0, "w":480, "h":512 },
+	"player": {
+				"pos": { "x": 240, "y": 448 },
+				"dims": { "x": 64, "y":64 },
+				"force": 10000,
+				"initialState": 0,
+				"path":"assets/images/magnet.png",
+				"offIdx":0,
+				"posIdx":1,
+				"negIdx":2
+			},
+			"items": [
+				{"path": "assets/images/64_pokeball.png", "pos": {"x": 240, "y": 200}, "dims": {"x":32,"y":32}, "charge":120}
+			],
+			"goal": {"color":"0xfffa8072", "pos": {"x": 240,"y":4}, "dims": {"x":200,"y":60}, "path":"assets/images/goal_200x60.png"},
+			"obstacles": [],
+			"wheels": []
+	},
+ {	
+	"name":"Level1",
+	"required": 2,
+	"area": { "x":0, "y":0, "w":480, "h":512 },
+	"player": {
+				"pos": { "x": 240, "y": 448 },
+				"dims": { "x": 64, "y":64 },
+				"force": 10000,
+				"initialState": 0,
+				"path":"assets/images/magnet.png",
+				"offIdx":0,
+				"posIdx":1,
+				"negIdx":2
+			},
+			"items": [
+				{"path": "assets/images/64_pokeball.png", "pos": {"x": 240, "y": 200}, "dims": {"x":32,"y":32}, "charge":120},
+				{"path": "assets/images/64_pokeball.png", "pos": {"x": 160, "y": 200}, "dims": {"x":32,"y":32}, "charge":-250},
+				{"path": "assets/images/64_pokeball.png", "pos": {"x": 320, "y": 200}, "dims": {"x":32,"y":32}, "charge":250}
+			],
+			"goal": {"color":"0xfffa8072", "pos": {"x": 240,"y":4}, "dims": {"x":200,"y":60}, "path":"assets/images/goal_200x60.png"},
+			"obstacles": [{"color":"0xffdaa520", "pos": {"x":100,"y":300}, "dims": {"x":96,"y":64}, "path":"assets/images/crate.png"}],
+			"wheels": [{"color":"0xff808080", "pos": {"x":384,"y":120}, "dims": {"x":96,"y":96}, "rotationSpeed": 720, "path":"assets/images/wheel_96x96.png"}]}
+	]
+}

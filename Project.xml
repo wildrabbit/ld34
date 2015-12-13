@@ -37,6 +37,9 @@
 	<classpath name="source" />
 	<assets path="assets" />
 	
+	<assets path="assets/data/levels.json" type="text" />
+		
+	
 	<!--------------------------------LIBRARIES------------------------------------->
 
 	<haxelib name="flixel"/>
