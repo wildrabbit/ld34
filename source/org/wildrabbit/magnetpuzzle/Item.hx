@@ -24,7 +24,6 @@ class Item extends FlxSprite
 	public var stuck:Bool = false;
 	public var stuckAngle:Float;
 	
-	public var bottom:Float = 40;
 	public var dragMagnitude:Float = 300;
 	public var charge:Float = 120;
 	public var maxSpeed:Float = 200;
@@ -48,9 +47,9 @@ class Item extends FlxSprite
 		bounds = Bounds;
 		
 		super(bounds.x + itemData.pos.x- w/2, bounds.y + itemData.pos.y - h/2);
-		loadGraphic(itemData.path, true, 32, 32);
-		animation.add("positive", [0],1,false);
-		animation.add("negative", [1], 1, false);
+		loadGraphic(itemData.path, true, w, h);
+		animation.add("positive", [itemData.index],1,false);
+		animation.add("negative", [itemData.index + 1], 1, false);
 		
 		charge = itemData.charge;
 		if (charge > 0)
@@ -77,6 +76,8 @@ class Item extends FlxSprite
 		var sourcePos:FlxVector = source.getPosition();
 		var attract:Bool = willAttract(source.currentForce);
 		
+		var threshold:Float = 50;
+		
 		if (stuck)
 		{
 			angle = stuckAngle * FlxAngle.TO_DEG - 90;
@@ -87,7 +88,7 @@ class Item extends FlxSprite
 			}
 			else
 			{
-				setPos(sourcePos.x - 48 * Math.cos(stuckAngle), sourcePos.y - 48 * Math.sin(stuckAngle));
+				setPos(sourcePos.x - threshold * Math.cos(stuckAngle), sourcePos.y - threshold* Math.sin(stuckAngle));
 				return;
 			}
 		}
@@ -99,30 +100,30 @@ class Item extends FlxSprite
 		angle = direction.radians * FlxAngle.TO_DEG - 90;
 		
 		var distance:Float = direction.length;
-		if (distance <= 48)
+		if (distance <= threshold)
 		{
 			if (attract)
 			{
 				velocity.set(0, 0);
 				angle = 0;
-				setPos(sourcePos.x - unitDirection.x * 48, sourcePos.y - unitDirection.y * 48);
+				setPos(sourcePos.x - unitDirection.x * threshold, sourcePos.y - unitDirection.y * threshold);
 				stuck = true;
 				stuckAngle = direction.radians;
 				return;				
 			}
 			else 
 			{
-				if (Math.abs(angle) < 10)
+				if (Math.abs(angle) < 30)
 				{
 					unitDirection.set(0, 1);
-					setPos(sourcePos.x - unitDirection.x * 48, sourcePos.y - unitDirection.y * 48);
+					setPos(sourcePos.x - unitDirection.x * threshold, sourcePos.y - unitDirection.y * threshold);
 					angle = direction.radians * FlxAngle.TO_DEG - 90;
 				}
-				else if (Math.abs(angle) > 80)
+				else if (Math.abs(angle) > 60)
 				{
-					var newDirectionAngle:Float = FlxMath.signOf(angle) * 80;
+					var newDirectionAngle:Float = FlxMath.signOf(angle) * 60;
 					unitDirection.set(Math.cos((newDirectionAngle + 90) * FlxAngle.TO_RAD), Math.sin((newDirectionAngle + 90) * FlxAngle.TO_RAD));
-					setPos(sourcePos.x - unitDirection.x * 48, sourcePos.y - unitDirection.y * 48);
+					setPos(sourcePos.x - unitDirection.x * threshold, sourcePos.y - unitDirection.y * threshold);
 					angle = newDirectionAngle;			 
 				}
 			}

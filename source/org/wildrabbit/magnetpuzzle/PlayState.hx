@@ -56,6 +56,7 @@ typedef ItemData =
 	var pos:Vec2;
 	var dims:IntVec2;
 	var charge:Float;
+	var index:Int;
 }
 
 typedef Level =

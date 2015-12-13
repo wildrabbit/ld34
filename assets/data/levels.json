@@ -15,7 +15,7 @@
 				"negIdx":2
 			},
 			"items": [
-				{"path": "assets/images/64_pokeball.png", "pos": {"x": 240, "y": 60}, "dims": {"x":32,"y":32}, "charge":120}
+				{"path": "assets/images/64_pokeball.png", "pos": {"x": 240, "y": 60}, "dims": {"x":32,"y":32}, "charge":120,"index":0}
 			],
 			"goal": {"color":"0xfffa8072", "pos": {"x": 240,"y":200}, "dims": {"x":200,"y":60}, "path":"assets/images/goal_200x60.png"},
 			"obstacles": [],
@@ -36,7 +36,7 @@
 				"negIdx":2
 			},
 			"items": [
-				{"path": "assets/images/64_pokeball.png", "pos": {"x": 240, "y": 240}, "dims": {"x":32,"y":32}, "charge":120}
+				{"path": "assets/images/64_pokeball.png", "pos": {"x": 240, "y": 240}, "dims": {"x":32,"y":32}, "charge":120,"index":0}
 			],
 			"goal": {"color":"0xfffa8072", "pos": {"x": 240,"y":64}, "dims": {"x":200,"y":60}, "path":"assets/images/goal_200x60.png"},
 			"obstacles": [],
@@ -47,7 +47,7 @@
 	"name":"Moveit!",
 	"area": { "x":0, "y":0, "w":480, "h":512 },
 	"player": {
-				"pos": { "x": 240, "y": 448 },
+				"pos": { "x": 260, "y": 448 },
 				"dims": { "x": 64, "y":64 },
 				"force": 10000,
 				"initialState": 0,
@@ -57,7 +57,7 @@
 				"negIdx":2
 			},
 			"items": [
-				{"path": "assets/images/64_pokeball.png", "pos": {"x": 240, "y": 240}, "dims": {"x":32,"y":32}, "charge":120}
+				{"path": "assets/images/64_pokeball.png", "pos": {"x": 260, "y": 240}, "dims": {"x":32,"y":32}, "charge":120,"index":0}
 			],
 			"goal": {"color":"0xfffa8072", "pos": {"x": 128,"y":64}, "dims": {"x":200,"y":60}, "path":"assets/images/goal_200x60.png"},
 			"obstacles": [],
@@ -78,10 +78,32 @@
 				"negIdx":2
 			},
 			"items": [
-				{"path": "assets/images/64_pokeball.png", "pos": {"x": 240, "y": 320}, "dims": {"x":32,"y":32}, "charge":120}
+				{"path": "assets/images/64_pokeball.png", "pos": {"x": 240, "y": 320}, "dims": {"x":32,"y":32}, "charge":120,"index":0}
 			],
 			"goal": {"color":"0xfffa8072", "pos": {"x": 240,"y":64}, "dims": {"x":200,"y":60}, "path":"assets/images/goal_200x60.png"},
 			"obstacles": [{"color":"0xffdaa520", "pos": {"x":192,"y":240}, "dims": {"x":96,"y":64}, "path":"assets/images/crate.png"}],
+			"wheels": []
+	},
+			 {
+	"required": 2,
+	"name":"TwoIsCompany",
+	"area": { "x":0, "y":0, "w":480, "h":512 },
+	"player": {
+				"pos": { "x": 240, "y": 448 },
+				"dims": { "x": 64, "y":64 },
+				"force": 10000,
+				"initialState": 0,
+				"path":"assets/images/magnet.png",
+				"offIdx":0,
+				"posIdx":1,
+				"negIdx":2
+			},
+			"items": [
+				{"path": "assets/images/64_pokeball.png", "pos": {"x": 180, "y": 320}, "dims": {"x":32,"y":32}, "charge":120,"index":0},
+				{"path": "assets/images/64_pokeball.png", "pos": {"x": 300, "y": 320}, "dims": {"x":32,"y":32}, "charge":-120,"index":0}
+			],
+			"goal": {"color":"0xfffa8072", "pos": {"x": 240,"y":64}, "dims": {"x":200,"y":60}, "path":"assets/images/goal_200x60.png"},
+			"obstacles": [],
 			"wheels": []
 	},
  {	
