@@ -43,6 +43,10 @@ typedef PlayerData =
 	var dims:IntVec2;
 	var force:Float;
 	var initialState:MagnetMode;
+	@:optional var path:String;
+	@:optional var offIdx:Int;
+	@:optional var posIdx:Int;
+	@:optional var negIdx:Int;
 }
 
 typedef ItemData =
@@ -169,9 +173,13 @@ class PlayState extends FlxState
 			area: { x:0, y:0, w:480, h:512 },
 			player: {
 				pos: { x: 240, y: 448 },
-				dims: { x: 32, y:32 },
+				dims: { x: 64, y:64 },
 				force: 10000,
-				initialState: MagnetMode.Off
+				initialState: MagnetMode.Off,
+				path:"assets/images/magnet.png",
+				offIdx:0,
+				posIdx:1,
+				negIdx:2
 			},
 			items: [
 				{path: "assets/images/64_pokeball.png", pos: {x: 240, y: 200}, dims: {x:32,y:32}, charge:120}//,
@@ -187,18 +195,22 @@ class PlayState extends FlxState
 			area: { x:0, y:0, w:480, h:512 },
 			player: {
 				pos: { x: 240, y: 448},
-				dims: { x: 32, y:32 },
+				dims: { x: 64, y:64 },
 				force: 10000,
-				initialState: MagnetMode.Off
+				initialState: MagnetMode.Off,
+				path:"assets/images/magnet.png",
+				offIdx:0,
+				posIdx:1,
+				negIdx:2
 			},
 			items: [
 				{path: "assets/images/64_pokeball.png", pos: {x: 240, y: 200}, dims: {x:32,y:32}, charge:250},
 				{path: "assets/images/64_pokeball.png", pos: {x: 160, y: 200}, dims: {x:32,y:32}, charge:-250},
 				{path: "assets/images/64_pokeball.png", pos: {x: 320, y: 200}, dims: {x:32,y:32}, charge:250},
 			],
-			goal: {color:FlxColor.PURPLE, pos: {x:240,y:4}, dims: {x:200,y:60}},
-			obstacles: [{color:FlxColor.GOLDENROD, pos: {x:100,y:300}, dims: {x:80,y:60}}],
-			wheels: [{color:FlxColor.GRAY, pos: {x:384,y:160}, dims: {x:96,y:96}, rotationSpeed: 720, path:"assets/images/wheel_96x96.png"}]
+			goal: {color:FlxColor.PURPLE, pos: {x:140,y:60}, dims: {x:200,y:60}, path:"assets/images/goal_200x60.png"},
+			obstacles: [{color:FlxColor.GOLDENROD, pos: {x:100,y:300}, dims: {x:96,y:64}, path:"assets/images/crate.png"}],
+			wheels: [{color:FlxColor.GRAY, pos: {x:384,y:120}, dims: {x:96,y:96}, rotationSpeed: 720, path:"assets/images/wheel_96x96.png"}]
 		});
 		
 
@@ -210,6 +222,8 @@ class PlayState extends FlxState
 		
 		worldForeground = new FlxSprite(0, 0, "assets/images/ui_cover.png");
 		magnetPaddle = new FlxSprite(0, 0, "assets/images/magnet_paddle.png");
+		magnetPaddle.moves = false;
+		magnetPaddle.immovable = true;
 		
 		loadLevel(levelTable.get(currentLevel));
 	}
@@ -247,7 +261,7 @@ class PlayState extends FlxState
 		
 		remove(magnetPaddle);
 		add(magnetPaddle);
-		magnetPaddle.setPosition(-(512 - worldArea.width)/ 2, worldArea.y + lv.player.pos.y - lv.player.dims.y/2);
+		magnetPaddle.setPosition(-(512 - worldArea.width)/ 2, worldArea.y + lv.player.pos.y);
 		
 		if (player != null)
 		{
@@ -274,7 +288,7 @@ class PlayState extends FlxState
 			obs.immovable = true;
 			if (obstacleData.path != null)
 			{
-				obs.loadGraphic(obstacleData.path);
+				obs.loadGraphic(obstacleData.path,false,obstacleData.dims.x,obstacleData.dims.y);
 			}
 			else
 			{
@@ -334,6 +348,7 @@ class PlayState extends FlxState
 		super.update();
 		
 		FlxG.collide(player, items);
+		FlxG.collide(magnetPaddle, items);
 		FlxG.collide(items, itemCollisions);
 	}	
 	
@@ -424,11 +439,11 @@ class PlayState extends FlxState
 			{
 				magnetButton.animation.play("off");
 			}
-			case MagnetMode.Attract:
+			case MagnetMode.Positive:
 			{
 				magnetButton.animation.play("positive");
 			}
-			case MagnetMode.Repel:
+			case MagnetMode.Negative:
 			{
 				magnetButton.animation.play("negative");
 			}

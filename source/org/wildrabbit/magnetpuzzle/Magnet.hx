@@ -24,8 +24,8 @@ import org.wildrabbit.magnetpuzzle.PlayState.PlayerData;
  @:enum abstract MagnetMode(Int) from Int to Int
  {
 	 var Off = 0;
-	 var Attract = 1;
-	 var Repel = 2;
+	 var Positive = 1;
+	 var Negative = 2;
  }
  
 class Magnet extends FlxSprite
@@ -37,7 +37,7 @@ class Magnet extends FlxSprite
 	private var gamepad:FlxGamepad;
 	
 	public static inline var MOVEMODE_COUNT:Int = MovementMode.Right - MovementMode.Off + 1;
-	public static inline var MAGNETMODE_COUNT:Int = MagnetMode.Repel - MagnetMode.Off + 1;
+	public static inline var MAGNETMODE_COUNT:Int = MagnetMode.Negative - MagnetMode.Off + 1;
 	
 	private var lastMv:MovementMode;
 	public var mvMode:MovementMode;
@@ -55,6 +55,8 @@ class Magnet extends FlxSprite
 	
 	private var effect:FlxSprite;
 	
+	private var animated:Bool;
+	
 	public function new(data:PlayerData,Bounds:FlxRect, ?Effect:FlxSprite) 
 	{
 		bounds = Bounds;
@@ -64,10 +66,22 @@ class Magnet extends FlxSprite
 
 		super(bounds.x + data.pos.x - w/2, bounds.y + data.pos.y - h/2, null);	
 		
-		makeGraphic(w, h);
+		if (data.path != null)
+		{
+			loadGraphic(data.path, true, data.dims.x, data.dims.y);
+			animation.add("off", [data.offIdx], 1, false);
+			animation.add("pos", [data.posIdx], 1, false);
+			animation.add("neg", [data.negIdx], 1, false);
+			animated = true;
+		}
+		else 
+		{
+			makeGraphic(w, h);
+			animated = false;
+		}
 		
 		changeMovement(MovementMode.Off);
-		lastMg = MagnetMode.Repel;
+		lastMg = MagnetMode.Negative;
 		changeMagnet(data.initialState);
 		
 		forceMagnitude = data.force;
@@ -80,7 +94,7 @@ class Magnet extends FlxSprite
 		lastMv = MovementMode.Right;
 		changeMovement(MovementMode.Off);		
 		
-		lastMg = MagnetMode.Repel;
+		lastMg = MagnetMode.Negative;
 		changeMagnet(MagnetMode.Off);
 	}
 	
@@ -174,7 +188,14 @@ class Magnet extends FlxSprite
 		{
 			case MagnetMode.Off: 
 			{
-				color = FlxColor.GRAY;
+				if (animated)
+				{
+					animation.play("off");
+				}
+				else 
+				{
+					color = FlxColor.GRAY;				
+				}
 				currentForce = 0;
 				if (effect != null)
 				{
@@ -182,9 +203,16 @@ class Magnet extends FlxSprite
 					effect.animation.pause();
 				}
 			}
-			case MagnetMode.Attract:
+			case MagnetMode.Positive:
 			{
-				color = FlxColor.RED;
+				if (animated)
+				{
+					animation.play("pos");
+				}
+				else 
+				{
+					color = FlxColor.RED;				
+				}
 				currentForce = forceMagnitude;
 				if (effect != null)
 				{
@@ -192,9 +220,17 @@ class Magnet extends FlxSprite
 					effect.animation.play("attract");
 				}
 			}
-			case MagnetMode.Repel:
+			case MagnetMode.Negative:
 			{
-				color = FlxColor.BLUE;
+				if (animated)
+				{
+					animation.play("neg");
+				}
+				else 
+				{
+					color = FlxColor.BLUE;				
+				}
+
 				currentForce = -forceMagnitude;
 				if (effect != null)
 				{
