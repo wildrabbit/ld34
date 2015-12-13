@@ -104,6 +104,8 @@ class PlayState extends FlxState
 	private var levelTable: Map<String,Level>;
 	
 	private var movementButton: FlxSprite;
+	private var magnetButton:FlxSprite;
+	private var magnetPressed:Bool;
 	
 	private var movePressed:Bool;
 	
@@ -114,7 +116,7 @@ class PlayState extends FlxState
 	{
 		super.create();
 		
-		movementButton = new FlxSprite(32, 520);
+		movementButton = new FlxSprite(32, 512);
 		movementButton.loadGraphic("assets/images/move_button.png", true, 128, 128);
 		movementButton.animation.add("normal", [0], 1, false);
 		movementButton.animation.add("pressed", [1], 1, false);
@@ -122,6 +124,14 @@ class PlayState extends FlxState
 		movementButton.animation.play("normal");
 		add(movementButton);
 		
+		magnetButton = new FlxSprite(320, 512);
+		magnetButton.loadGraphic("assets/images/magnet_mode_button.png", true, 128, 128);
+		magnetButton.animation.add("negative", [0], 1, false);
+		magnetButton.animation.add("positive", [1], 1, false);
+		magnetButton.animation.add("off", [2], 1, false);
+		magnetPressed = false;
+		magnetButton.animation.play("off");
+		add(magnetButton);
 		
 		worldArea = new FlxRect(0, 0, FlxG.width, FlxG.height);
 		worldDebug = new FlxSprite(worldArea.x, worldArea.y);
@@ -232,6 +242,7 @@ class PlayState extends FlxState
 			player = null;
 		}		
 		player = new Magnet(lv.player, worldArea, effect);
+		refreshMagnetButton();
 		add(player);
 		
 		if (goal != null)
@@ -346,7 +357,42 @@ class PlayState extends FlxState
 				OnMoveReleased();	
 			}			
 		}
-
+		
+		var ascending:Bool = true;
+		buttonPressed = FlxG.keys.anyJustPressed(["K"]);
+		//if (!buttonPressed)
+		//{
+			//
+		//}
+		
+		if (buttonPressed)
+		{
+			OnMagnetCycle(ascending);
+		}
+	}
+	
+	private function OnMagnetCycle(ascending:Bool):Void
+	{
+		player.OnCycleMagnetMode(ascending);
+		refreshMagnetButton();		
+	}
+	private function refreshMagnetButton():Void
+	{
+		switch (player.mgMode)
+		{
+			case MagnetMode.Off: 
+			{
+				magnetButton.animation.play("off");
+			}
+			case MagnetMode.Attract:
+			{
+				magnetButton.animation.play("positive");
+			}
+			case MagnetMode.Repel:
+			{
+				magnetButton.animation.play("negative");
+			}
+		}
 	}
 	
 	private function OnMovePressed():Void

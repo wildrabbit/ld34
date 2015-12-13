@@ -40,10 +40,10 @@ class Magnet extends FlxSprite
 	public static inline var MAGNETMODE_COUNT:Int = MagnetMode.Repel - MagnetMode.Off + 1;
 	
 	private var lastMv:MovementMode;
-	private var mvMode:MovementMode;
+	public var mvMode:MovementMode;
 	
 	private var lastMg:MagnetMode;
-	private var mgMode:MagnetMode;
+	public var mgMode:MagnetMode;
 	
 	private var forceMagnitude: Float = 10000;
 	public var currentForce: Float = 0;
@@ -86,7 +86,6 @@ class Magnet extends FlxSprite
 	
 	override public function update():Void
 	{
-		processInput();
 		super.update();
 		
 		if ((x + w) > bounds.x + bounds.width)
@@ -124,39 +123,27 @@ class Magnet extends FlxSprite
 		changeMovement(MovementMode.Off);
 	}
 	
-	private function processInput():Void
+	public function OnCycleMagnetMode(ascending:Bool = true): Void 
 	{
-		//if (gamepad != null)
-		//{
-			//
-		//}
-		
-		//var buttonMove:Bool = FlxG.keys.anyJustPressed(["J"]);
-		//if (buttonMove)
-		//{
-			//if (lastMv == MovementMode.Left)
-			//{
-				//changeMovement(lastMv);
-			//}
-			//else if (lastMv == MovementMode.Right)
-			//{
-				//changeMovement(lastMv);
-			//}
-		//}
-		//else if (FlxG.keys.anyJustReleased(["J"]))
-		//{
-			//changeMovement(MovementMode.Off);
-		//}
-
-		var buttonMagnet:Bool = FlxG.keys.anyJustPressed(["K"]);
-		if (buttonMagnet)
+		var newMagnet:Int = mgMode;
+		if (ascending)
 		{
-			var newMagnet:Int = mgMode;
-			newMagnet = (newMagnet+ 1) % MAGNETMODE_COUNT;
-			changeMagnet(newMagnet);
+			newMagnet = (newMagnet+ 1) % MAGNETMODE_COUNT;			
 		}
-		//var buttonReleased:Bool = FlxG.
+		else 
+		{
+			if (newMagnet == 0)
+			{
+				newMagnet = MAGNETMODE_COUNT - 1;
+			}
+			else 
+			{
+				newMagnet = (newMagnet - 1) % MAGNETMODE_COUNT;
+			}
+		}
+		changeMagnet(newMagnet);
 	}
+	
 	
 	private function changeMovement(newMvMode:MovementMode ):Void 
 	{
@@ -175,9 +162,10 @@ class Magnet extends FlxSprite
 			{
 				velocity.set(speed, 0);
 			}
-		}
-		
+		}		
 	}
+	
+
 	
 	private function changeMagnet (newMgMode:MagnetMode):Void 
 	{
