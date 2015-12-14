@@ -2,7 +2,7 @@
 "levels" :[
  {
 	"required": 1,
-	"name":"OppositesAttract",
+	"name":"Opposites Attract",
 	"area": { "x":0, "y":0, "w":480, "h":512 },
 	"player": {
 				"pos": { "x": 240, "y": 448 },
@@ -23,7 +23,7 @@
 	},
 	 {
 	"required": 1,
-	"name":"LikesRepel",
+	"name":"Likes Repel",
 	"area": { "x":0, "y":0, "w":480, "h":512 },
 	"player": {
 				"pos": { "x": 240, "y": 448 },
@@ -44,7 +44,7 @@
 	},
 		 {
 	"required": 1,
-	"name":"Moveit!",
+	"name":"Move it!",
 	"area": { "x":0, "y":0, "w":480, "h":512 },
 	"player": {
 				"pos": { "x": 260, "y": 448 },
@@ -65,7 +65,7 @@
 	},
 		 {
 	"required": 1,
-	"name":"AlwaysCrates",
+	"name":"Crates, what else?",
 	"area": { "x":0, "y":0, "w":480, "h":512 },
 	"player": {
 				"pos": { "x": 240, "y": 448 },
@@ -86,7 +86,7 @@
 	},
 			 {
 	"required": 1,
-	"name":"OrBlocks",
+	"name":"Oh yeah, blocks",
 	"area": { "x":0, "y":0, "w":480, "h":512 },
 	"player": {
 				"pos": { "x": 240, "y": 448 },
@@ -111,7 +111,7 @@
 	},
 	 {
 	"required": 2,
-	"name":"TwoIsCompany",
+	"name":"Two Is Company",
 	"area": { "x":0, "y":0, "w":480, "h":512 }, 
 	"player": {
 				"pos": { "x": 240, "y": 448 },
@@ -155,7 +155,7 @@
 	},
 			 {
 	"required":3,
-	"name":"ThreeIsMultitude",
+	"name":"Three Is Multitude",
 	"area": { "x":0, "y":0, "w":480, "h":512 }, 
 	"player": {
 				"pos": { "x": 240, "y": 448 },
@@ -177,7 +177,7 @@
 			"wheels": []
 	},
  {	
-	"name":"ThisEscalatedFast",
+	"name":"This Escalated Fast!",
 	"required": 2,
 	"area": { "x":0, "y":0, "w":480, "h":512 },
 	"player": {

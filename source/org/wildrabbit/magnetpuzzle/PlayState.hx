@@ -117,9 +117,9 @@ class PlayState extends FlxState
 	private var worldForeground:FlxSprite;
 	private var magnetPaddle:FlxSprite;
 	
-	private var bgColour:Int = 0xffecc284;
+	public static inline var bgColour:Int = 0xffecc284;
 	
-	private var txtColour:Int = 0xff4c2e54;
+	public static inline var txtColour:Int = 0xff4c2e54;
 	
 	private var goal: Goal;
 	
@@ -162,7 +162,7 @@ class PlayState extends FlxState
 	private var textEndLevel:FlxText;
 	private var textNewLevel:FlxText;
 	
-
+	private var texts:Array<String>;
 	/**
 	 * Function that is called up when to state is created to set it up.
 	 */
@@ -170,7 +170,9 @@ class PlayState extends FlxState
 	{
 		super.create();
 		
-		movementButton = new FlxSprite(32, 512);
+		texts = ["Well done!", "One less to go", "Yay!", "Level beaten", "Awesome", "F*ck yeah!"];
+		
+		movementButton = new FlxSprite(32, 500);
 		movementButton.loadGraphic("assets/images/move_button.png", true, 128, 128);
 		movementButton.animation.add("normal", [0], 1, false);
 		movementButton.animation.add("pressed", [1], 1, false);
@@ -178,7 +180,7 @@ class PlayState extends FlxState
 		movePressTarget = MoveTarget.None;
 		movementButton.animation.play("normal");
 		
-		magnetButton = new FlxSprite(320, 512);
+		magnetButton = new FlxSprite(320, 500);
 		magnetButton.loadGraphic("assets/images/magnet_mode_button.png", true, 128, 128);
 		magnetButton.animation.add("negative", [0], 1, false);
 		magnetButton.animation.add("positive", [1], 1, false);
@@ -248,6 +250,8 @@ class PlayState extends FlxState
 			currentLevelIndex = 0;
 			loadLevel(levelTable.get(levelSequence[currentLevelIndex]));
 		}
+		
+		FlxG.sound.playMusic("assets/music/music.wav");
 	}
 
 	/**
@@ -411,6 +415,7 @@ class PlayState extends FlxState
 				resetGame();
 				FlxG.sound.play("assets/sounds/click.wav");
 				FlxG.switchState(new MenuState());
+				FlxG.sound.music.stop();
 			}
 			return;			
 		}
@@ -526,6 +531,7 @@ class PlayState extends FlxState
 	{
 		player.OnCycleMagnetMode(ascending);
 		refreshMagnetButton();		
+		FlxG.sound.play("assets/sounds/click.wav");
 	}
 	private function refreshMagnetButton():Void
 	{
@@ -552,6 +558,7 @@ class PlayState extends FlxState
 		player.OnMoveJustPressed();
 		movePressed = true;
 		movePressTarget = mvTarget;
+		FlxG.sound.play("assets/sounds/click.wav");
 	}
 	
 	private function OnMoveReleased ():Void
@@ -608,7 +615,9 @@ class PlayState extends FlxState
 				gameOver = true;
 				gameLost = true;
 				gameWon = false;
-				trace("UH-OH...YOU LOST");
+				
+				FlxG.switchState(new GameLostState());
+				FlxG.sound.music.stop();
 			}	
 		}
 	}
@@ -616,7 +625,8 @@ class PlayState extends FlxState
 	private function showLevelEnd():Void
 	{
 		transitionBg.visible = true;
-		textEndLevel.text = "Level beaten!";
+		var idx:Int = Math.floor (Math.random() * texts.length);
+		textEndLevel.text = texts[idx];
 		textEndLevel.visible = true;
 	}
 	
@@ -629,7 +639,7 @@ class PlayState extends FlxState
 	private function showNewLevel():Void
 	{
 		transitionBg.visible = true;
-		textNewLevel.text = "New level!!";
+		textNewLevel.text = "Level " + Std.string(currentLevelIndex + 1) + ": " + levelTable.get(levelSequence[currentLevelIndex]).name;
 		textNewLevel.visible = true;
 	}
 	
@@ -658,7 +668,8 @@ class PlayState extends FlxState
 				gameLost = false;
 				gameWon = true;
 				
-				trace("CONGRATS, YOU'VE REACHED THE END!");	
+				FlxG.switchState(new GameWonState());
+				FlxG.sound.music.stop();				
 			}
 			
 		}
