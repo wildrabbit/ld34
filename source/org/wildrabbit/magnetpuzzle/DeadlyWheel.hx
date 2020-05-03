@@ -2,7 +2,7 @@ package org.wildrabbit.magnetpuzzle;
 
 import flixel.FlxSprite;
 import flixel.util.FlxColor;
-import flixel.util.FlxRect;
+import flixel.math.FlxRect;
 import org.wildrabbit.magnetpuzzle.PlayState.WheelData;
 
 /**

@@ -67,9 +67,9 @@ class GameLostState extends FlxState
 	/**
 	 * Function that is called once every frame.
 	 */
-	override public function update():Void
+	override public function update(dt:Float):Void
 	{
-		super.update();
+		super.update(dt);
 		
 		if (FlxG.keys.justPressed.ANY || FlxG.mouse.justPressed || FlxG.touches.justStarted(FlxG.touches.list).length > 0)
 		{

@@ -5,16 +5,17 @@ import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.FlxState;
 import flixel.group.FlxGroup;
-import flixel.group.FlxSpriteGroup;
-import flixel.group.FlxTypedGroup;
+import flixel.input.keyboard.FlxKey;
 import flixel.text.FlxText;
+import flixel.group.FlxSpriteGroup;
+import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.ui.FlxButton;
 import flixel.util.FlxColor;
-import flixel.util.FlxMath;
-import flixel.util.FlxRect;
+import flixel.math.FlxMath;
+import flixel.math.FlxRect;
 import flixel.util.FlxSort;
-import flixel.util.FlxVector;
-import flixel.util.FlxPoint;
+import flixel.math.FlxVector;
+import flixel.math.FlxPoint;
 import haxe.Json;
 import openfl.Assets;
 import org.wildrabbit.magnetpuzzle.Magnet.MagnetMode;
@@ -138,8 +139,8 @@ class PlayState extends FlxState
 	private var movePressed:Bool;
 	private var movePressTarget:MoveTarget;
 	
-	private static var moveKeys:Array<String> = ["F", "U"];
-	private static var magnetKeys:Array<String> = ["J", "H"];
+	private static var moveKeys:Array<FlxKey> = [FlxKey.F, FlxKey.U];
+	private static var magnetKeys:Array<FlxKey> = [FlxKey.J, FlxKey.H];
 	
 	private var necessaryCharges = 1;
 	private var successfulCharges = 0;
@@ -372,7 +373,7 @@ class PlayState extends FlxState
 	/**
 	 * Function that is called once every frame.
 	 */
-	override public function update():Void
+	override public function update(dt:Float):Void
 	{
 		if (waitingLevelEnd)
 		{
@@ -438,7 +439,7 @@ class PlayState extends FlxState
 				x.removeForce();
 			}
 		}
-		super.update();
+		super.update(dt);
 		
 		FlxG.collide(player, items);
 		FlxG.collide(magnetPaddle, items);

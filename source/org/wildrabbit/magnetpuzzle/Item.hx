@@ -2,13 +2,13 @@ package org.wildrabbit.magnetpuzzle;
 
 import flixel.FlxG;
 import flixel.FlxSprite;
-import flixel.util.FlxAngle;
+import flixel.math.FlxAngle;
 import flixel.util.FlxColor;
-import flixel.util.FlxMath;
-import flixel.util.FlxPoint;
-import flixel.util.FlxRect;
-import flixel.util.FlxVector;
-import flixel.util.FlxVelocity;
+import flixel.math.FlxMath;
+import flixel.math.FlxPoint;
+import flixel.math.FlxRect;
+import flixel.math.FlxVector;
+import flixel.math.FlxVelocity;
 import org.wildrabbit.magnetpuzzle.PlayState.ItemData;
 
 /**
@@ -37,11 +37,11 @@ class Item extends FlxSprite
 		var f: Float = Math.random();
 		if (f < 0.33)
 		{
-			color = FlxColor.PLUM;
+			color = FlxColor.fromInt(0xff843179);
 		}
 		else if (f < 0.66)
 		{
-			color = FlxColor.TEAL;
+			color = FlxColor.fromInt(0xff008080);
 		}
 		
 		bounds = Bounds;
@@ -73,7 +73,7 @@ class Item extends FlxSprite
 	
 	public function addForce(source:Magnet)
 	{
-		var sourcePos:FlxVector = source.getPosition();
+		var sourcePos:FlxVector = source.getPos();
 		var attract:Bool = willAttract(source.currentForce);
 		
 		var threshold:Float = 50;
@@ -92,7 +92,7 @@ class Item extends FlxSprite
 				return;
 			}
 		}
-		var position:FlxVector = getPosition();
+		var position:FlxVector = getPos();
 		var direction:FlxVector = sourcePos.subtractNew(position);
 		var unitDirection:FlxVector = new FlxVector(direction.x, direction.y);
 		unitDirection.normalize();
@@ -147,9 +147,9 @@ class Item extends FlxSprite
 		stuckAngle = 0;
 	}
 	
-	override public function update():Void
+	override public function update(dt:Float):Void
 	{
-		super.update();
+		super.update(dt);
 		
 		if (y < bounds.y)
 		{
@@ -174,7 +174,7 @@ class Item extends FlxSprite
 		}
 	}
 	
-	public function getPosition():FlxVector
+	public function getPos():FlxVector
 	{
 		return new FlxVector(x - bounds.x + w / 2, y - bounds.y + w / 2);
 	}

@@ -5,9 +5,8 @@ import flixel.FlxSprite;
 import flixel.input.gamepad.FlxGamepad;
 import flixel.system.FlxSound;
 import flixel.util.FlxColor;
-import flixel.util.FlxColorUtil;
-import flixel.util.FlxRect;
-import flixel.util.FlxVector;
+import flixel.math.FlxRect;
+import flixel.math.FlxVector;
 import org.wildrabbit.magnetpuzzle.PlayState.PlayerData;
 
 /**
@@ -105,9 +104,9 @@ class Magnet extends FlxSprite
 
 	}
 	
-	override public function update():Void
+	override public function update(dt:Float):Void
 	{
-		super.update();
+		super.update(dt);
 		
 		if ((x + w) > bounds.x + bounds.width)
 		{
@@ -260,7 +259,7 @@ class Magnet extends FlxSprite
 			}
 		}
 	}
-	public function getPosition():FlxVector 
+	public function getPos():FlxVector 
 	{
 		return new FlxVector(x - bounds.x + w/2, y - bounds.y + h/2);
 	}
